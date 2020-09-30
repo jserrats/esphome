@@ -1,0 +1,186 @@
+esphome:
+    name: button12
+    platform: ESP8266
+    board: nodemcuv2
+
+wifi:
+    ssid: !secret wifi_ssid
+    password: !secret wifi_pass
+
+    # Enable fallback hotspot (captive portal) in case wifi connection fails
+    ap:
+        ssid: "Button12 Fallback Hotspot"
+        password: "Z5PfiDs5Tzm5"
+
+captive_portal:
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:
+
+globals:
+    - id: margin
+      type: int
+      restore_value: no
+      initial_value: '10'
+
+    - id: b0_ref
+      type: int
+      restore_value: no
+      initial_value: '540'
+    - id: b1_ref
+      type: int
+      restore_value: no
+      initial_value: '1000'
+    - id: b2_ref
+      type: int
+      restore_value: no
+      initial_value: '985'
+    - id: b3_ref
+      type: int
+      restore_value: no
+      initial_value: '897'
+    - id: b4_ref
+      type: int
+      restore_value: no
+      initial_value: '830'
+    - id: b5_ref
+      type: int
+      restore_value: no
+      initial_value: '768'
+    - id: b6_ref
+      type: int
+      restore_value: no
+      initial_value: '726'
+    - id: b7_ref
+      type: int
+      restore_value: no
+      initial_value: '668'
+    - id: b8_ref
+      type: int
+      restore_value: no
+      initial_value: '636'
+    - id: b9_ref
+      type: int
+      restore_value: no
+      initial_value: '600'
+    - id: b10_ref
+      type: int
+      restore_value: no
+      initial_value: '568'
+    - id: b11_ref
+      type: int
+      restore_value: no
+      initial_value: '514'
+
+
+binary_sensor:
+  
+    - platform: template
+      name: "bed0"
+      lambda: |-
+        int value = static_cast<int>(id(adc0).state * 1000);
+        ESP_LOGD("debug", "Global value is: %d", value);
+        int reference = id(b0_ref);
+        int lower = reference - id(margin);
+        int upper = reference + id(margin);
+        return (lower < value && upper > value);
+    - platform: template
+      name: "bed1"
+      lambda: |-
+        int value = static_cast<int>(id(adc0).state * 1000);
+        int reference = id(b1_ref);
+        int lower = reference - id(margin);
+        int upper = reference + id(margin);
+        return (lower < value && upper > value);
+    - platform: template
+      name: "bed2"
+      lambda: |-
+        int value = static_cast<int>(id(adc0).state * 1000);
+        int reference = id(b2_ref);
+        int lower = reference - id(margin);
+        int upper = reference + id(margin);
+        return (lower < value && upper > value);
+    - platform: template
+      name: "bed3"
+      lambda: |-
+        int value = static_cast<int>(id(adc0).state * 1000);
+        int reference = id(b3_ref);
+        int lower = reference - id(margin);
+        int upper = reference + id(margin);
+        return (lower < value && upper > value);
+    - platform: template
+      name: "bed4"
+      lambda: |-
+        int value = static_cast<int>(id(adc0).state * 1000);
+        int reference = id(b4_ref);
+        int lower = reference - id(margin);
+        int upper = reference + id(margin);
+        return (lower < value && upper > value);
+    - platform: template
+      name: "bed5"
+      lambda: |-
+        int value = static_cast<int>(id(adc0).state * 1000);
+        int reference = id(b5_ref);
+        int lower = reference - id(margin);
+        int upper = reference + id(margin);
+        return (lower < value && upper > value);
+    - platform: template
+      name: "bed6"
+      lambda: |-
+        int value = static_cast<int>(id(adc0).state * 1000);
+        int reference = id(b6_ref);
+        int lower = reference - id(margin);
+        int upper = reference + id(margin);
+        return (lower < value && upper > value);
+    - platform: template
+      name: "bed7"
+      lambda: |-
+          int value = static_cast<int>(id(adc0).state * 1000);
+          int reference = id(b7_ref);
+          int lower = reference - id(margin);
+          int upper = reference + id(margin);
+          return (lower < value && upper > value);
+    - platform: template
+      name: "bed8"
+      lambda: |-
+        int value = static_cast<int>(id(adc0).state * 1000);
+        int reference = id(b8_ref);
+        int lower = reference - id(margin);
+        int upper = reference + id(margin);
+        return (lower < value && upper > value);
+    - platform: template
+      name: "bed9"
+      lambda: |-
+        int value = static_cast<int>(id(adc0).state * 1000);
+        int reference = id(b9_ref);
+        int lower = reference - id(margin);
+        int upper = reference + id(margin);
+        return (lower < value && upper > value);
+    - platform: template
+      name: "bed10"
+      lambda: |-
+        int value = static_cast<int>(id(adc0).state * 1000);
+        int reference = id(b10_ref);
+        int lower = reference - id(margin);
+        int upper = reference + id(margin);
+        return (lower < value && upper > value);
+    - platform: template
+      name: "bed11"
+      lambda: |-
+        int value = static_cast<int>(id(adc0).state * 1000);
+        int reference = id(b11_ref);
+        int lower = reference - id(margin);
+        int upper = reference + id(margin);
+        return (lower < value && upper > value);
+
+sensor:
+  - platform: adc
+    pin: A0
+    id: adc0
+    update_interval: 100ms
+

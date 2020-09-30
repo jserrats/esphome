@@ -1,0 +1,83 @@
+esphome:
+  name: button8
+  platform: ESP8266
+  board: nodemcuv2
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Button8 Fallback Hotspot"
+    password: "Z5PfiDs5Tzm5"
+
+captive_portal:
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:
+
+
+binary_sensor:
+
+  - platform: gpio
+    name: "desk0"
+    pin: 
+      number: D8 # D8 --- button ---- 3.3v
+      inverted: False
+      mode: INPUT
+
+  - platform: gpio
+    name: "desk1"
+    pin:
+      number: D1 # D1..7 ---- button ---- GND
+      inverted: True
+      mode: INPUT_PULLUP
+
+  - platform: gpio
+    name: "desk2"
+    pin:
+      number: D2
+      inverted: True
+      mode: INPUT_PULLUP
+
+  - platform: gpio
+    name: "desk3"
+    pin:
+      number: D3
+      inverted: True
+      mode: INPUT_PULLUP
+
+  - platform: gpio
+    name: "desk4"
+    pin:
+      number: D4
+      inverted: True
+      mode: INPUT_PULLUP
+
+  - platform: gpio
+    name: "desk5"
+    pin:
+      number: D5
+      inverted: True
+      mode: INPUT_PULLUP
+
+  - platform: gpio
+    name: "desk6"
+    pin:
+      number: D6
+      inverted: True
+      mode: INPUT_PULLUP
+
+  - platform: gpio
+    name: "desk7"
+    pin:
+      number: D7
+      inverted: True
+      mode: INPUT_PULLUP
+
