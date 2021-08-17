@@ -30,6 +30,16 @@ binary_sensor:
       number: D1
       inverted: True
       mode: INPUT_PULLUP
+    on_state:
+      then:
+        - homeassistant.service:
+            service: media_player.media_pause
+            data:
+              entity_id: media_player.spotify_jaume_serrats9
+        - homeassistant.service:
+            service: media_player.media_pause
+            data:
+              entity_id: media_player.mpd
 
   - platform: gpio
     pin: 
