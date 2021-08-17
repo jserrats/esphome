@@ -1,0 +1,98 @@
+esphome:
+  name: switches4
+  platform: ESP8266
+  board: nodemcuv2
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Switches4 Fallback Hotspot"
+    password: "Z5PfiDs5Tzm5"
+
+captive_portal:
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:
+
+binary_sensor:
+
+  - platform: gpio
+    name: "Media mode"
+    pin:
+      number: D1
+      inverted: True
+      mode: INPUT_PULLUP
+
+  - platform: gpio
+    pin: 
+      number: D2
+      mode: INPUT_PULLUP
+      inverted: true
+    id: fan
+    filters: 
+      - delayed_on: 10ms
+      - delayed_off: 10ms
+    on_press:
+      then:
+        - homeassistant.service:
+            service: switch.turn_on
+            data:
+              entity_id: switch.power5
+    on_release:
+      then:
+        - homeassistant.service:
+            service: switch.turn_off
+            data:
+              entity_id: switch.power5
+
+  - platform: gpio
+    pin: 
+      number: D3
+      mode: INPUT_PULLUP
+      inverted: true
+    id: printer3d
+    filters: 
+      - delayed_on: 10ms
+      - delayed_off: 10ms
+    on_press:
+      then:
+        - homeassistant.service:
+            service: switch.turn_on
+            data:
+              entity_id: switch.power4
+    on_release:
+      then:
+        - homeassistant.service:
+            service: switch.turn_off
+            data:
+              entity_id: switch.power4
+
+  - platform: gpio
+    pin: 
+      number: D5
+      mode: INPUT_PULLUP
+      inverted: true
+    id: desk
+    filters: 
+      - delayed_on: 10ms
+      - delayed_off: 10ms
+    on_press:
+      then:
+        - homeassistant.service:
+            service: switch.turn_on
+            data:
+              entity_id: switch.desk
+    on_release:
+      then:
+        - homeassistant.service:
+            service: switch.turn_off
+            data:
+              entity_id: switch.desk
