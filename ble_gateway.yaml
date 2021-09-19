@@ -1,0 +1,28 @@
+esphome:
+  name: ble_gateway
+  platform: ESP32
+  board: nodemcu-32s
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+
+ota:
+captive_portal:
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+esp32_ble_tracker:
+
+sensor:
+  - platform: xiaomi_miscale2
+    mac_address: 'E0:0F:2D:A6:78:41'
+    weight:
+      name: "Xiaomi Mi Scale Weight"
+    impedance:
+      name: "Xiaomi Mi Scale Impedance"
+
