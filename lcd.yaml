@@ -19,7 +19,13 @@ logger:
 
 # Enable Home Assistant API
 api:
-
+  services:
+    - service: notify_lcd
+      variables:
+        message: string
+      then:
+        - lambda: |-
+            id(mydisplay).printf(0,3, message);
 ota:
 
 i2c:
@@ -38,11 +44,9 @@ display:
       it.printf(0,1,"TMP:%2.1fC ", id(temperature).state);
       it.printf(11,1,"HUM:%2.1f%%", id(humidity).state);
 
-      //it.strftime(0,2,"%H:%M", id(next_dawn).state);
       it.printf(0,2,"RAM:%2.1f%% ", id(glances_ram_used_percent).state);
       it.printf(11,2,"CPU:%2.1f%%", id(glances_cpu_used).state);
 
-      it.printf(0,3,"CPU:%2.1f%%", id(glances_cpu_used).state);
 time:
 - platform: sntp
   id: my_time
