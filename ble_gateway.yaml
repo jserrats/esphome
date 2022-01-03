@@ -22,7 +22,9 @@ sensor:
   - platform: xiaomi_miscale2
     mac_address: 'E0:0F:2D:A6:78:41'
     weight:
+      id: xiaomi_mi_scale_weight
       name: "Xiaomi Mi Scale Weight"
     impedance:
+      id: xiaomi_mi_scale_impedance
       name: "Xiaomi Mi Scale Impedance"
 
