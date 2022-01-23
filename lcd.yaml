@@ -19,13 +19,13 @@ logger:
 
 # Enable Home Assistant API
 api:
-  services:
-    - service: notify_lcd
-      variables:
-        message: string
-      then:
-        - lambda: |-
-            id(mydisplay).printf(0,3, message);
+  # services:
+  #   - service: notify_lcd
+  #     variables:
+  #       message: string
+  #     then:
+  #       - lambda: |-
+  #           id(mydisplay).printf(0,3, message.c_str()); //compiles but does not work for some reason
 ota:
 
 i2c:
@@ -46,6 +46,8 @@ display:
 
       it.printf(0,2,"RAM:%2.1f%% ", id(glances_ram_used_percent).state);
       it.printf(11,2,"CPU:%2.1f%%", id(glances_cpu_used).state);
+
+      it.printf(0,3,"%s",id(media_title).state.c_str());
 
 time:
 - platform: sntp
@@ -73,31 +75,31 @@ switch:
 
 sensor:
   - platform: homeassistant
-    name: "Weather Forecast From Home Assistant"
+    #name: "Weather Forecast From Home Assistant"
     id: temperature
     entity_id: weather.can_gaudir
     attribute: temperature
   - platform: homeassistant
-    name: "Weather Forecast From Home Assistant"
+   # name: "Weather Forecast From Home Assistant"
     id: humidity
     entity_id: weather.can_gaudir
     attribute: humidity
   - platform: homeassistant
-    name: "glances_ram_used_percent"
+   # name: "glances_ram_used_percent"
     id: glances_ram_used_percent
     entity_id: sensor.glances_ram_used_percent
   - platform: homeassistant
-    name: "glances_cpu_used"
+    #name: "glances_cpu_used"
     id: glances_cpu_used
     entity_id: sensor.glances_cpu_used
 text_sensor:
   - platform: homeassistant
-    name: "Weather Forecast From Home Assistant"
+    #name: "Weather Forecast From Home Assistant"
     id: next_dawn
     entity_id: sun.sun
     attribute: next_dawn
   - platform: homeassistant
-    name: "media_title"
+   # name: "media_title"
     id: media_title
     entity_id: media_player.mpd
     attribute: media_title
