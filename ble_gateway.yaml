@@ -19,7 +19,8 @@ api:
 esp32_ble_tracker:
 
 sensor:
-  - platform: xiaomi_miscale2
+  # https://esphome.io/components/sensor/xiaomi_miscale.html
+  - platform: xiaomi_miscale
     mac_address: 'E0:0F:2D:A6:78:41'
     weight:
       id: xiaomi_mi_scale_weight
