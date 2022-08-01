@@ -68,22 +68,22 @@ binary_sensor:
       number: D3
       mode: INPUT_PULLUP
       inverted: true
-    id: printer3d
+    id: wled_rack
     filters: 
       - delayed_on: 10ms
       - delayed_off: 10ms
     on_press:
       then:
         - homeassistant.service:
-            service: switch.turn_on
+            service: light.turn_on
             data:
-              entity_id: switch.power4
+              entity_id: light.wled_rack
     on_release:
       then:
         - homeassistant.service:
-            service: switch.turn_off
+            service: light.turn_off
             data:
-              entity_id: switch.power4
+              entity_id: light.wled_rack
 
   - platform: gpio
     pin: 
