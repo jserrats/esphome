@@ -44,8 +44,8 @@ display:
       it.printf(0,1,"TMP:%2.1fC ", id(temperature).state);
       it.printf(11,1,"HUM:%2.1f%%", id(humidity).state);
 
-      it.printf(0,2,"RAM:%2.1f%% ", id(glances_ram_used_percent).state);
-      it.printf(11,2,"CPU:%2.1f%%", id(glances_cpu_used).state);
+      it.printf(0,2,"PWR:%2.1f%W ", id(shelly1pm0_power).state);
+      //it.printf(11,2,"CPU:%2.1f%%", id(glances_cpu_used).state);
 
       it.printf(0,3,"%s",id(media_title).state.c_str());
 
@@ -85,13 +85,10 @@ sensor:
     entity_id: weather.can_gaudir
     attribute: humidity
   - platform: homeassistant
-   # name: "glances_ram_used_percent"
-    id: glances_ram_used_percent
-    entity_id: sensor.glances_ram_used_percent
-  - platform: homeassistant
-    #name: "glances_cpu_used"
-    id: glances_cpu_used
-    entity_id: sensor.glances_cpu_used
+   # name: "sensor.shelly1pm0_power"
+    id: shelly1pm0_power
+    entity_id: sensor.shelly1pm0_power
+
 text_sensor:
   - platform: homeassistant
     #name: "Weather Forecast From Home Assistant"
