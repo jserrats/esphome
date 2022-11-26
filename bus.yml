@@ -38,16 +38,37 @@ display:
     pages:
       - id: page1
         lambda: |-
-          //it.printf(0, 0, id(roboto), "time: %s" ,id(temperature).state);
-          // it.printf(0,1, id(roboto), "TMP:%2.1fC", id(temperature).state);
-          //it.printf(0, 32, id(roboto), "%s" ,"temperature");
-
           it.strftime(5, 60, id(roboto), TextAlign::BASELINE_LEFT, "%H:%M", id(esptime).now());
-          it.printf(128,0, id(roboto_small),TextAlign::TOP_RIGHT ,  "V3 C3D %02.0f", id(v3_1378).state);
-          it.printf(128,16, id(roboto_small),TextAlign::TOP_RIGHT , "V5 C3D %02.0f", id(v5_1378).state);
-          it.printf(128,32, id(roboto_small),TextAlign::TOP_RIGHT , "V5 C3U %02.0f", id(v5_291).state);
-          it.printf(128,48, id(roboto_small),TextAlign::TOP_RIGHT , "V5 LCO %02.0f", id(v5_3524).state);
-     
+
+          it.print(64,0, id(roboto_small),TextAlign::TOP_LEFT ,  "V3 C3D");
+          it.print(64,16, id(roboto_small),TextAlign::TOP_LEFT , "V5 C3D");
+          it.print(64,32, id(roboto_small),TextAlign::TOP_LEFT , "V5 C3U");
+          it.print(64,48, id(roboto_small),TextAlign::TOP_LEFT , "V5 LCO");
+
+          if (!std::isnan(id(v3_1378).state)) {
+          it.printf(128,0, id(roboto_small),TextAlign::TOP_RIGHT ,  "%02.0f", id(v3_1378).state);
+          }else{
+          it.print(128,0, id(roboto_small),TextAlign::TOP_RIGHT , "- ");
+          }
+
+          if (!std::isnan(id(v5_1378).state)) {
+          it.printf(128,16, id(roboto_small),TextAlign::TOP_RIGHT , "%02.0f", id(v5_1378).state);
+          }else{
+          it.print(128,16, id(roboto_small),TextAlign::TOP_RIGHT , "- ");
+          }
+
+          if (!std::isnan(id(v5_291).state)) {
+          it.printf(128,32, id(roboto_small),TextAlign::TOP_RIGHT , "%02.0f", id(v5_291).state);
+          }else{
+          it.print(128,32, id(roboto_small),TextAlign::TOP_RIGHT , "- ");
+          }
+
+          if (!std::isnan(id(v5_3524).state)) {
+          it.printf(128,48, id(roboto_small),TextAlign::TOP_RIGHT , "%02.0f", id(v5_3524).state);
+          }else{
+          it.print(128,48, id(roboto_small),TextAlign::TOP_RIGHT , "- ");
+          }
+
           if (id(weather_state).has_state()) {
           std::map<std::string, std::string> weather_icon_map
             {
