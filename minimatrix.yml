@@ -1,7 +1,7 @@
 esphome:
   name: minimatrix
-  platform: ESP32
-  board: nodemcu-32s
+  platform: ESP8266
+  board: d1_mini
   platformio_options:
       lib_deps: NeoPixelBus@2.6.0
 wifi:
@@ -19,7 +19,7 @@ logger:
 light:
   - platform: neopixelbus
     variant: WS2812
-    pin: GPIO5
+    pin: GPIO3
     num_leds: 256
     type: GRB
     name: "led_matrix"
