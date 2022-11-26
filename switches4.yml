@@ -25,21 +25,21 @@ ota:
 binary_sensor:
 
   - platform: gpio
-    name: "Media mode"
     pin:
       number: D1
       inverted: True
       mode: INPUT_PULLUP
-    on_state:
+    on_press:
       then:
         - homeassistant.service:
-            service: media_player.media_pause
+            service: switch.turn_on
             data:
-              entity_id: media_player.spotify_jaume_serrats9
+              entity_id: switch.pi_hole
+    on_release:
         - homeassistant.service:
-            service: media_player.media_pause
+            service: switch.turn_off
             data:
-              entity_id: media_player.mpd
+              entity_id: switch.pi_hole
 
   - platform: gpio
     pin: 
