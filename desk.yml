@@ -1,0 +1,155 @@
+esphome:
+    name: desk
+    platform: ESP8266
+    board: nodemcuv2
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "desk Fallback Hotspot"
+    password: "Z5PfiDs5Tzm5"
+
+# Enable logging
+logger:
+
+ota:
+# Enable Home Assistant API
+api:
+
+i2c:
+  sda: D1
+  scl: D2
+  frequency: 800kHz
+
+display:
+  - platform: ssd1306_i2c
+    model: "SSD1306 128x64"
+    id: my_display
+
+    #reset_pin: D0
+    address: 0x3C
+    pages:
+      - id: page1
+        lambda: |-
+          if(id(desk).state){
+          std::map<std::string, std::string> weather_icon_map
+            {
+              {"clear-night", "\U000F0594"},
+              {"cloudy", "\U000F0590"},
+              {"fog", "\U000F0591"},
+              {"hail", "\U000F0592"},
+              {"lightning", "\U000F0593"},
+              {"lightning-rainy", "\U000F067E"},
+              {"partlycloudy", "\U000F0595"},
+              {"pouring", "\U000F0596"},
+              {"rainy", "\U000F0597"},
+              {"snowy", "\U000F0598"},
+              {"snowy-rainy", "\U000F067F"},
+              {"sunny", "\U000F0599"},
+              {"windy", "\U000F059D"},
+              {"windy-variant", "\U000F059E"},
+            };
+
+          it.strftime(0, -4, id(jet), TextAlign::TOP_LEFT, "%H:%M", id(esptime).now());
+          it.strftime(128, 0, id(jet_small), TextAlign::TOP_RIGHT, "%a %d", id(esptime).now());
+          it.strftime(128, 23, id(jet_small), TextAlign::BASELINE_RIGHT, "%b %y", id(esptime).now());
+          
+          it.printf(16, 38,id(jet_small), TextAlign::BASELINE_LEFT, "%2.1f°C %2.1f%W", id(temperature).state, id(shelly1pm0_power).state);
+          it.printf(0,40,id(icons), TextAlign::BASELINE_LEFT, weather_icon_map[id(weather_state).state.c_str()].c_str());
+
+          std::map<std::string, std::string> icon_map
+            {
+              {"pihole", "\U000F0378"},
+            };
+
+          if(id(pihole).state) {
+              it.printf(128,40,id(icons), TextAlign::BASELINE_RIGHT, "\U000F0483");
+            } else{
+              it.printf(128,40,id(icons), TextAlign::BASELINE_RIGHT, "\U000F0499");
+            }
+
+          it.printf(64,52, id(jet_very_small), TextAlign::BASELINE_CENTER, "%s", id(media_title).state.c_str());
+          it.printf(64,64, id(jet_very_small), TextAlign::BASELINE_CENTER, "%s", id(media_artist).state.c_str());
+          }
+
+sensor:
+  - platform: homeassistant
+    #name: "Weather Forecast From Home Assistant"
+    id: temperature
+    entity_id: weather.can_garri
+    attribute: temperature
+  - platform: homeassistant
+    name: "sensor.shelly1pm0_power"
+    id: shelly1pm0_power
+    entity_id: sensor.shelly1pm0_power
+
+text_sensor:
+  - platform: homeassistant
+   # name: "media_title"
+    id: media_title
+    entity_id: media_player.spotify_jaume_serrats9
+    attribute: media_title
+  - platform: homeassistant
+   # name: "media_artist"
+    id: media_artist
+    entity_id: media_player.spotify_jaume_serrats9
+    attribute: media_artist
+  - platform: homeassistant
+    id: weather_state
+    name: "Current Weather Icon"
+    entity_id: weather.can_garri
+    internal: true
+
+binary_sensor:
+  - platform: homeassistant
+   # name: "pihole"
+    id: pihole
+    entity_id: binary_sensor.pihole
+
+  - platform: homeassistant
+   # name: "desk"
+    id: desk
+    entity_id: switch.desk
+
+
+time:
+- platform: sntp
+  id: esptime
+
+font:
+  # gfonts://family[@weight]
+  - file: "gfonts://Ubuntu Mono"
+    id: jet
+    size: 30
+  - file: "gfonts://Ubuntu Mono"
+    id: jet_small
+    size: 15
+  - file: "gfonts://Ubuntu Mono"
+    id: jet_very_small
+    size: 12
+
+  #https://pictogrammers.github.io/@mdi/font/2.0.46/
+  - file: 'config/materialdesignicons-webfont.ttf'
+    id: icons
+    size: 15
+    glyphs:
+      - "\U000F0483" #""
+      - "\U000F0499" #""
+      - "\U000F0594" #"clear-night"
+      - "\U000F0590" #"cloudy"
+      - "\U000F0591" #"fog"
+      - "\U000F0592" #"hail"
+      - "\U000F0593" #"lightning"
+      - "\U000F067E" #"lightning-rainy"
+      - "\U000F0595" #"partlycloudy"
+      - "\U000F0596" #"pouring"
+      - "\U000F0597" #"rainy"
+      - "\U000F0598" #"snowy"
+      - "\U000F067F" #"snowy-rainy"
+      - "\U000F0599" #"sunny"
+      - "\U000F059D" #"windy"
+      - "\U000F059E" #"windy-variant"
+
