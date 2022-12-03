@@ -57,7 +57,7 @@ display:
           it.strftime(128, 0, id(jet_small), TextAlign::TOP_RIGHT, "%a %d", id(esptime).now());
           it.strftime(128, 23, id(jet_small), TextAlign::BASELINE_RIGHT, "%b %y", id(esptime).now());
           
-          it.printf(16, 38,id(jet_small), TextAlign::BASELINE_LEFT, "%2.1f°C %2.1f%W", id(temperature).state, id(shelly1pm0_power).state);
+          it.printf(64, 38,id(jet_small), TextAlign::BASELINE_CENTER, "%2.0f°C %2.0f%W", id(temperature).state, id(shelly1pm0_power).state);
           it.printf(0,40,id(icons), TextAlign::BASELINE_LEFT, weather_icon_map[id(weather_state).state.c_str()].c_str());
 
           std::map<std::string, std::string> icon_map
