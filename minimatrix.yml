@@ -8,7 +8,7 @@ wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
 
-# ota:
+ota:
 
 # Enable logging
 logger:
@@ -19,14 +19,14 @@ logger:
 light:
   - platform: neopixelbus
     variant: WS2812
-    pin: GPIO3
+    pin: GPIO0
     num_leds: 256
     type: GRB
     name: "led_matrix"
     id: led_matrix_light
     default_transition_length: 0s
-    color_correct: [20%, 20%, 20%]
-    restore_mode: ALWAYS_ON
+    color_correct: [50%, 50%, 50%]
+    restore_mode: ALWAYS_ON 
 
 display:
   - platform: addressable_light
@@ -64,10 +64,10 @@ display:
         # it.print(22, 0, id(bit6),blue,TextAlign::TOP_LEFT, "28");
 
 font:
-  - file: "config/pixelmix.ttf"
+  - file: "config/pixel.ttf"
     id: bit8
     size: 8
-  - file: "config/pixelmix.ttf"
+  - file: "config/pixel.ttf"
     id: bit6
     size: 6
 
