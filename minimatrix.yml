@@ -1,0 +1,76 @@
+esphome:
+  name: minimatrix
+  platform: ESP8266
+  board: d1_mini
+  platformio_options:
+      lib_deps: NeoPixelBus@2.6.0
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+
+ota:
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+# api:
+
+light:
+  - platform: neopixelbus
+    variant: WS2812
+    pin: GPIO0
+    num_leds: 256
+    type: GRB
+    name: "led_matrix"
+    id: led_matrix_light
+    default_transition_length: 0s
+    color_correct: [50%, 50%, 50%]
+    restore_mode: ALWAYS_ON 
+
+display:
+  - platform: addressable_light
+    id: led_matrix_display
+    addressable_light_id: led_matrix_light
+    width: 32
+    height: 8
+    pixel_mapper: |-
+      if (x % 2 == 0) {
+        return (x * 8) + y;
+      }
+      return (x * 8) + (7 - y);
+    update_interval: 200ms
+    lambda: |-
+          // Draw a bulls-eye pattern
+          Color red = Color(0xFF0000);
+          Color green = Color(0x00FF00);
+          Color blue = Color(0x0000FF);
+          Color white = Color(0xFFFFFF);
+          Color orange = Color(0xfc9003);
+          Color turquoise = Color(0x03fc8c);
+
+          //it.rectangle(0, 0, 8, 8, red);
+          //it.rectangle(1, 1, 6, 6, green);
+          //it.rectangle(2, 2, 4, 4, blue);
+          //it.rectangle(3, 3, 2, 2, red);
+          //it.line(0,0,31,7,blue);
+          //it.fill(blue);
+
+          it.strftime(23, 2, id(bit6), turquoise, TextAlign::TOP_LEFT, "%d", id(esptime).now());
+          it.strftime(12, 0, id(bit8), orange, TextAlign::TOP_RIGHT, "%H", id(esptime).now());
+          it.strftime(12, 0, id(bit8), orange, TextAlign::TOP_LEFT, "%M", id(esptime).now());
+        #      it.print(10, 0, id(bit8), green, TextAlign::TOP_RIGHT, "12");
+        # it.print(10, 0, id(bit8),TextAlign::TOP_LEFT, "88");
+        # it.print(22, 0, id(bit6),blue,TextAlign::TOP_LEFT, "28");
+
+font:
+  - file: "config/pixel.ttf"
+    id: bit8
+    size: 8
+  - file: "config/pixel.ttf"
+    id: bit6
+    size: 6
+
+time:
+  - platform: sntp
+    id: esptime
