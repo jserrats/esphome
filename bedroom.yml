@@ -1,0 +1,184 @@
+esphome:
+    name: bedroom
+    platform: ESP8266
+    board: nodemcuv2
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+
+# Enable logging
+logger:
+
+ota:
+# Enable Home Assistant API
+api:
+  services:
+    - service: play_mission_impossible
+      then:
+       - rtttl.play: 'MissionImp:d=16,o=6,b=95:32d,32d#,32d,32d#,32d,32d#,32d,32d#,32d,32d,32d#,32e,32f,32f#,32g,g,8p,g,8p,a#,p,c7,p,g,8p,g,8p,f,p,f#,p,g,8p,g,8p,a#,p,c7,p,g,8p,g,8p,f,p,f#,p,a#,g,2d,32p,a#,g,2c#,32p,a#,g,2c,a#5,8c,2p,32p,a#5,g5,2f#,32p,a#5,g5,2f,32p,a#5,g5,2e,d#,8d'
+    - service: play_mario
+      then:
+       - rtttl.play: 'mario:d=4,o=5,b=100:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g,8p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,16p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16c7,16p,16c7,16c7,p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16d#6,8p,16d6,8p,16c6'
+
+
+i2c:
+  sda: D1
+  scl: D2
+  frequency: 800kHz
+
+display:
+  - platform: ssd1306_i2c
+    model: "SSD1306 128x64"
+    id: my_display
+    contrast: 10%
+    #reset_pin: D0
+    address: 0x3C
+    pages:
+      - id: page1
+        lambda: |-
+          if (id(screen_display).state) {
+            it.strftime(64, 64, id(jet), TextAlign::BASELINE_CENTER, "%H:%M", id(esptime).now());
+            it.strftime(64, 0, id(jet_small), TextAlign::TOP_CENTER, "%a %d %b %y", id(esptime).now());          
+
+            if (id(temperature).has_state()) {
+              if(!id(deadbolt).state) {
+                  it.printf(30,32,id(icons), TextAlign::BASELINE_LEFT, "\U000F033e");
+                } else{
+                  it.printf(30,32,id(icons), TextAlign::BASELINE_LEFT, "\U000F0340");
+                }
+              if(!id(shutter).state) {
+                  it.printf(50,32,id(icons), TextAlign::BASELINE_LEFT, "\U000F033e");
+                } else{
+                  it.printf(50,32,id(icons), TextAlign::BASELINE_LEFT, "\U000F0340");
+                }
+              it.printf(128, 32,id(jet_small), TextAlign::BASELINE_RIGHT, "%2.0f/%2.0f°C", id(indoor_temperature).state, id(temperature).state);
+            }
+          }
+
+light:
+  - platform: neopixelbus
+    type: GRB
+    variant: WS2811
+    pin: GPIO3
+    num_leds: 2
+    id: led
+    name: Nightstand led
+
+sensor:
+  - platform: homeassistant
+    #name: "Weather Forecast From Home Assistant"
+    id: temperature
+    entity_id: weather.can_garri
+    attribute: temperature
+
+  - platform: homeassistant
+    #name: "Weather Forecast From Home Assistant"
+    id: indoor_temperature
+    entity_id: sensor.bedroom_sensor_temperature
+
+binary_sensor:
+  - platform: homeassistant
+    id: deadbolt
+    entity_id: binary_sensor.door_deadbolt
+
+  - platform: homeassistant
+    id: shutter
+    entity_id: binary_sensor.magnet1_contact
+
+  - platform: gpio
+    id: button
+    pin:
+      number: D6
+      inverted: True
+      mode: INPUT_PULLUP
+    on_click:
+      then:
+        - if:
+            condition:
+              - binary_sensor.is_on: screen_display
+            then:
+              - homeassistant.service:
+                  service: light.turn_on
+                  data:
+                    entity_id: light.bedroom_lights
+                    brightness: "3"
+                    color_temp: "454"
+            else:
+              - binary_sensor.template.publish:
+                  id: screen_display
+                  #state: !lambda 'return !id(screen_display).state;'
+                  state: !lambda 'return 1;'
+              - delay: 5 sec
+              - if:
+                  condition:
+                    - binary_sensor.is_off: lights
+                  then:
+                    - binary_sensor.template.publish:
+                        id: screen_display
+                        state: !lambda 'return 0;'
+    on_multi_click:
+    - timing:
+        - ON for at least 1s
+      then:
+          - if:
+              condition:
+                - binary_sensor.is_off: lights
+              then:
+                - homeassistant.service:
+                    service: light.turn_on
+                    data:
+                      entity_id: light.bedroom_lights
+                      brightness: "255"
+                      color_temp: "250"
+              else:
+                - homeassistant.service:
+                    service: light.turn_off
+                    data:
+                      entity_id: light.bedroom_lights
+
+  - platform: homeassistant
+  #name: "Weather Forecast From Home Assistant"
+    id: lights
+    entity_id: light.bedroom_lights
+    on_state:
+        then:
+        - binary_sensor.template.publish:
+            id: screen_display
+            state: !lambda 'return id(lights).state;'
+        - logger.log: "Single Long Clicked"
+
+  - platform: template
+    id: screen_display
+
+output:
+  - platform: esp8266_pwm
+    pin: D5
+    id: rtttl_out
+
+rtttl:
+  output: rtttl_out
+
+time:
+- platform: sntp
+  id: esptime
+
+font:
+  # gfonts://family[@weight]
+  - file: "gfonts://Ubuntu Mono"
+    id: jet
+    size: 40
+  - file: "gfonts://Ubuntu Mono"
+    id: jet_small
+    size: 15
+  - file: "gfonts://Ubuntu Mono"
+    id: jet_very_small
+    size: 12
+
+  #https://pictogrammers.github.io/@mdi/font/2.0.46/
+  - file: 'config/materialdesignicons-webfont.ttf'
+    id: icons
+    size: 15
+    glyphs:
+      - "\U000F033e" #""
+      - "\U000F0340" #""
