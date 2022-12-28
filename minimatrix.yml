@@ -25,7 +25,7 @@ light:
     name: "led_matrix"
     id: led_matrix_light
     default_transition_length: 0s
-    color_correct: [50%, 50%, 50%]
+    color_correct: [25%, 25%, 25%]
     restore_mode: ALWAYS_ON 
 
 display:
@@ -34,6 +34,7 @@ display:
     addressable_light_id: led_matrix_light
     width: 32
     height: 8
+    rotation: 180
     pixel_mapper: |-
       if (x % 2 == 0) {
         return (x * 8) + y;
