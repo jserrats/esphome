@@ -20,8 +20,13 @@ api:
     - service: play_mario
       then:
        - rtttl.play: 'mario:d=4,o=5,b=100:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g,8p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,16p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16c7,16p,16c7,16c7,p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16d#6,8p,16d6,8p,16c6'
-
-
+    - service: play_rtttl
+      variables:
+        song_str: string
+      then:
+        - rtttl.play:
+            rtttl: !lambda 'return song_str;'
+      # https://github.com/dhylands/upy-rtttl/blob/master/songs.py
 i2c:
   sda: D1
   scl: D2
@@ -85,6 +90,25 @@ binary_sensor:
   - platform: homeassistant
     id: shutter
     entity_id: binary_sensor.magnet1_contact
+
+  - platform: homeassistant
+    id: lockdown
+    entity_id: binary_sensor.home_lockdown
+    on_press:
+      then:
+        - if:
+            condition:
+              - binary_sensor.is_on: night_time
+            then:
+              - light.turn_on:
+                  id: led
+                  brightness: 100%
+                  red: 100%
+                  green: 0%
+                  blue: 0%
+    on_release:
+      then:
+        - light.turn_off: led
 
   - platform: gpio
     id: button
@@ -151,6 +175,9 @@ binary_sensor:
   - platform: template
     id: screen_display
 
+  - platform: template
+    id: night_time
+
 output:
   - platform: esp8266_pwm
     pin: D5
@@ -162,6 +189,31 @@ rtttl:
 time:
 - platform: sntp
   id: esptime
+  on_time:
+      - seconds: 0
+        minutes: 0
+        hours: 22
+        then:
+          - binary_sensor.template.publish:
+              id: night_time
+              state: !lambda 'return 1;'
+          - if:
+              condition:
+                - binary_sensor.is_on: lockdown
+              then:
+                - light.turn_on:
+                    id: led
+                    brightness: 100%
+                    red: 100%
+                    green: 0%
+                    blue: 0%
+      - seconds: 0
+        minutes: 0
+        hours: 7
+        then:
+          - binary_sensor.template.publish:
+              id: night_time
+              state: !lambda 'return 0;'
 
 font:
   # gfonts://family[@weight]
