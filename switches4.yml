@@ -29,17 +29,20 @@ binary_sensor:
       number: D1
       inverted: True
       mode: INPUT_PULLUP
+      id: workbench_power
     on_press:
       then:
         - homeassistant.service:
             service: switch.turn_on
             data:
-              entity_id: switch.pi_hole
+              entity_id: switch.power6
     on_release:
+      then:
         - homeassistant.service:
             service: switch.turn_off
             data:
-              entity_id: switch.pi_hole
+              entity_id: switch.power6
+
 
   - platform: gpio
     pin: 
