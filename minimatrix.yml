@@ -1,5 +1,5 @@
 esphome:
-  name: minimatrix
+  name: esp-minimatrix
   platform: ESP8266
   board: d1_mini
   platformio_options:

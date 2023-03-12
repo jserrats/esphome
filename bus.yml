@@ -1,5 +1,5 @@
 esphome:
-  name: bus
+  name: esp-bus
   platform: ESP8266
   board: d1_mini
 

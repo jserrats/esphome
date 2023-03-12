@@ -1,5 +1,5 @@
 esphome:
-  name: switches4
+  name: esp-switches4
   platform: ESP8266
   board: nodemcuv2
 
@@ -25,6 +25,7 @@ ota:
 binary_sensor:
 
   - platform: gpio
+    id: bench
     pin:
       number: D1
       inverted: True
