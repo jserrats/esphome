@@ -1,5 +1,5 @@
 esphome:
-    name: bedroom
+    name: esp-bedroom
     platform: ESP8266
     board: nodemcuv2
 

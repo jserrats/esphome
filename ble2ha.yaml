@@ -1,5 +1,5 @@
 esphome:
-  name: ble2ha
+  name: esp-ble2ha
   platform: ESP32
   board: nodemcu-32s
 
@@ -8,7 +8,6 @@ wifi:
   password: !secret wifi_pass
 
 ota:
-captive_portal:
 
 # Enable logging
 logger:
