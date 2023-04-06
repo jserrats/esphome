@@ -50,7 +50,7 @@ binary_sensor:
       number: D2
       mode: INPUT_PULLUP
       inverted: true
-    id: fan
+    id: printer
     filters: 
       - delayed_on: 10ms
       - delayed_off: 10ms
@@ -81,13 +81,13 @@ binary_sensor:
         - homeassistant.service:
             service: light.turn_on
             data:
-              entity_id: light.wled_rack
+              entity_id: light.rack
     on_release:
       then:
         - homeassistant.service:
             service: light.turn_off
             data:
-              entity_id: light.wled_rack
+              entity_id: light.rack
 
   - platform: gpio
     pin: 
