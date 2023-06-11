@@ -80,7 +80,7 @@ sensor:
   - platform: homeassistant
     #name: "Weather Forecast From Home Assistant"
     id: indoor_temperature
-    entity_id: sensor.bedroom_sensor_temperature
+    entity_id: sensor.sensor0_temperature
 
 binary_sensor:
   - platform: homeassistant
