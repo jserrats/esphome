@@ -4,6 +4,7 @@ esphome:
   board: nodemcuv2
 
 wifi:
+  use_address: esp-switches4.iot
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
   
@@ -25,24 +26,26 @@ ota:
 binary_sensor:
 
   - platform: gpio
-    id: bench
+    id: studio_fan_power
     pin:
       number: D1
       inverted: True
       mode: INPUT_PULLUP
       id: workbench_power
+    filters:
+    - delayed_on_off: 50ms
     on_press:
       then:
         - homeassistant.service:
-            service: switch.turn_on
+            service: fan.turn_on
             data:
-              entity_id: switch.power6
+              entity_id: fan.power7
     on_release:
       then:
         - homeassistant.service:
-            service: switch.turn_off
+            service: fan.turn_off
             data:
-              entity_id: switch.power6
+              entity_id: fan.power7
 
 
   - platform: gpio
@@ -52,8 +55,7 @@ binary_sensor:
       inverted: true
     id: printer
     filters: 
-      - delayed_on: 10ms
-      - delayed_off: 10ms
+    - delayed_on_off: 50ms
     on_press:
       then:
         - homeassistant.service:
@@ -74,8 +76,7 @@ binary_sensor:
       inverted: true
     id: wled_rack
     filters: 
-      - delayed_on: 10ms
-      - delayed_off: 10ms
+    - delayed_on_off: 50ms
     on_press:
       then:
         - homeassistant.service:
@@ -96,8 +97,7 @@ binary_sensor:
       inverted: true
     id: desk
     filters: 
-      - delayed_on: 10ms
-      - delayed_off: 10ms
+    - delayed_on_off: 50ms
     on_press:
       then:
         - homeassistant.service:
