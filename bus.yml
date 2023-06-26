@@ -6,6 +6,7 @@ esphome:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
+  use_address: esp-bus.iot
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   # ap:
@@ -27,6 +28,18 @@ i2c:
   scl: D1
   frequency: 800kHz
 
+light:
+  - platform: binary
+    name: "Trash reminder"
+    output: trash
+    effects:
+      - strobe:
+
+output:
+  - platform: gpio
+    pin: D4
+    id: trash
+    inverted: True
 
 display:
   - platform: ssd1306_i2c
