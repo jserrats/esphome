@@ -7,6 +7,7 @@ esphome:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
+  use_address: esp-minimatrix.iot
 
 ota:
 
@@ -14,7 +15,7 @@ ota:
 logger:
 
 # Enable Home Assistant API
-# api:
+api:
 
 light:
   - platform: neopixelbus
@@ -22,11 +23,11 @@ light:
     pin: GPIO0
     num_leds: 256
     type: GRB
-    name: "led_matrix"
+    name: "Clock"
     id: led_matrix_light
     default_transition_length: 0s
-    color_correct: [25%, 25%, 25%]
-    restore_mode: ALWAYS_ON 
+    color_correct: [75%, 75%, 75%]
+    restore_mode: ALWAYS_ON
 
 display:
   - platform: addressable_light
@@ -56,10 +57,11 @@ display:
           //it.rectangle(3, 3, 2, 2, red);
           //it.line(0,0,31,7,blue);
           //it.fill(blue);
-
-          it.strftime(23, 2, id(bit6), turquoise, TextAlign::TOP_LEFT, "%d", id(esptime).now());
-          it.strftime(12, 0, id(bit8), orange, TextAlign::TOP_RIGHT, "%H", id(esptime).now());
-          it.strftime(12, 0, id(bit8), orange, TextAlign::TOP_LEFT, "%M", id(esptime).now());
+          //if (id(clock_on).state) {
+            it.strftime(23, 2, id(bit6), turquoise, TextAlign::TOP_LEFT, "%d", id(esptime).now());
+            it.strftime(12, 0, id(bit8), orange, TextAlign::TOP_RIGHT, "%H", id(esptime).now());
+            it.strftime(12, 0, id(bit8), orange, TextAlign::TOP_LEFT, "%M", id(esptime).now());
+          //}
         #      it.print(10, 0, id(bit8), green, TextAlign::TOP_RIGHT, "12");
         # it.print(10, 0, id(bit8),TextAlign::TOP_LEFT, "88");
         # it.print(22, 0, id(bit6),blue,TextAlign::TOP_LEFT, "28");
@@ -75,3 +77,18 @@ font:
 time:
   - platform: sntp
     id: esptime
+    on_time:
+      - seconds: 0
+        minutes: 0
+        hours: 8
+        then:
+          - light.turn_on:
+              id: led_matrix_light
+              brightness: 100%
+      - seconds: 0
+        minutes: 0
+        hours: 20
+        then:
+          - light.turn_on:
+              id: led_matrix_light
+              brightness: 25%
