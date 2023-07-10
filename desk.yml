@@ -6,7 +6,7 @@ esphome:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
-  
+  use_address: esp-desk-screen.iot
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   # ap:
   #   ssid: "desk Fallback Hotspot"
@@ -28,7 +28,7 @@ display:
   - platform: ssd1306_i2c
     model: "SSD1306 128x64"
     id: my_display
-
+    rotation: 180
     #reset_pin: D0
     address: 0x3C
     pages:
@@ -60,17 +60,6 @@ display:
           it.printf(64, 38,id(jet_small), TextAlign::BASELINE_CENTER, "%2.0f°C %2.0f%W", id(temperature).state, id(shelly1pm0_power).state);
           it.printf(0,40,id(icons), TextAlign::BASELINE_LEFT, weather_icon_map[id(weather_state).state.c_str()].c_str());
 
-          std::map<std::string, std::string> icon_map
-            {
-              {"pihole", "\U000F0378"},
-            };
-
-          if(id(pihole).state) {
-              it.printf(128,40,id(icons), TextAlign::BASELINE_RIGHT, "\U000F0483");
-            } else{
-              it.printf(128,40,id(icons), TextAlign::BASELINE_RIGHT, "\U000F0499");
-            }
-
           it.printf(64,52, id(jet_very_small), TextAlign::BASELINE_CENTER, "%s", id(media_title).state.c_str());
           it.printf(64,64, id(jet_very_small), TextAlign::BASELINE_CENTER, "%s", id(media_artist).state.c_str());
           }
@@ -85,6 +74,17 @@ sensor:
     name: "sensor.shelly1pm0_power"
     id: shelly1pm0_power
     entity_id: sensor.shelly1pm0_power
+  - platform: ld2410
+    moving_distance:
+      name : Moving Distance
+    still_distance:
+      name: Still Distance
+    moving_energy:
+      name: Move Energy
+    still_energy:
+      name: Still Energy
+    detection_distance:
+      name: Detection Distance
 
 text_sensor:
   - platform: homeassistant
@@ -105,19 +105,46 @@ text_sensor:
 
 binary_sensor:
   - platform: homeassistant
-   # name: "pihole"
-    id: pihole
-    entity_id: binary_sensor.pihole
-
-  - platform: homeassistant
    # name: "desk"
     id: desk
     entity_id: switch.desk
-
+  - platform: ld2410
+    has_target:
+      name: Presence
+    has_moving_target:
+      name: Moving Target
+    has_still_target:
+      name: Still Target
 
 time:
 - platform: sntp
   id: esptime
+
+light:
+  - platform: neopixelbus
+    type: GRB
+    variant: WS2811
+    pin: D8
+    num_leds: 6
+    id: led
+    name: Desk notification light
+    effects:
+      - pulse:
+      - addressable_color_wipe:
+      - addressable_rainbow:
+      - addressable_scan:
+
+uart:
+  tx_pin: GPIO1
+  rx_pin: GPIO3
+  baud_rate: 256000
+  parity: NONE
+  stop_bits: 1
+
+ld2410:
+  timeout: 5s
+  max_move_distance : 3m
+  max_still_distance: 0.75m
 
 font:
   # gfonts://family[@weight]
