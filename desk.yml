@@ -154,12 +154,13 @@ uart:
 
 ld2410:
   timeout: 5s
-  max_move_distance : 3m
-  max_still_distance: 0.75m
-  g0_move_threshold: 10
-  g1_move_threshold: 10
-  g2_still_threshold: 0
-  g3_still_threshold: 0
+  max_move_distance : 6m
+  max_still_distance: 4.5m
+  # g5_still_threshold: 80
+  # g6_still_threshold: 100
+  # g7_still_threshold: 100
+  # g8_still_threshold: 100
+
 
 font:
   # gfonts://family[@weight]
