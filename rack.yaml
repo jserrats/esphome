@@ -1,19 +1,20 @@
 esphome:
-  name: esp-ble2ha
+  name: esp-rack
   platform: ESP32
   board: nodemcu-32s
 
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
+  use_address: esp-rack.iot
 
 ota:
 
 # Enable logging
 logger:
 
-# Enable Home Assistant API
-#api:
+api:
+
 mqtt:
   broker: mqtt.lan
   #discovery: true
@@ -59,33 +60,62 @@ sensor:
                   sprintf(buf,  "%1.3f", id(impedance_miscale).state);
                   return ((std::string) buf).c_str();
                 retain: true
-  #         - lambda: |-
-  #             if (id(weight_miscale).state >= 70 && id(weight_miscale).state <= 90) {
-  #               return id(impedance_jaume).publish_state(x);}
-  #             else if (id(weight_miscale).state >= 50 && id(weight_miscale).state <= 70) {
-  #               return id(impedance_judit).publish_state(x);}
 
-  # - platform: template
-  #   name: Weight Jaume
-  #   id: weight_jaume
-  #   unit_of_measurement: "kg"
-  #   icon: mdi:weight-kilogram
-  #   accuracy_decimals: 2
-  # - platform: template
-  #   name: Impedance Jaume
-  #   id: impedance_jaume
-  #   unit_of_measurement: "ohm"
-  #   icon: mdi:omega
-  #   accuracy_decimals: 0
-  # - platform: template
-  #   name: Weight Judit
-  #   id: weight_judit
-  #   unit_of_measurement: "kg"
-  #   icon: mdi:weight-kilogram
-  #   accuracy_decimals: 2
-  # - platform: template
-  #   name: Impedance Judit
-  #   id: impedance_judit
-  #   unit_of_measurement: "ohm"
-  #   icon: mdi:omega
-  #   accuracy_decimals: 0
+  - platform: mqtt_subscribe
+    id: uptime
+    topic: glances/bender/uptime/seconds
+    filters:
+      - lambda: return x / (3600.0*24.0);
+  - platform: mqtt_subscribe
+    id: diskfree
+    topic: glances/bender/fs/_home_jserrats_data
+  - platform: homeassistant
+    name: "sensor.shelly1pm0_power"
+    id: shelly1pm0_power
+    entity_id: sensor.shelly1pm0_power
+
+text_sensor:
+  - platform: mqtt_subscribe
+    id: system_info
+    topic: glances/bender/system/linux_distro
+
+time:
+- platform: sntp
+  id: esptime
+
+i2c:
+  sda: GPIO21
+  scl: GPIO22
+
+display:
+  - platform: lcd_pcf8574
+    dimensions: 20x4
+    address: 0x27
+    id: mydisplay
+    update_interval: 1s
+    lambda: |-
+      // Print the current time
+      it.strftime("%X %a %d / %m", id(esptime).now());
+      it.printf(0,1,"UP:%.0fD", id(uptime).state);
+      it.printf(9,1,"PWR:%2.1f%W ", id(shelly1pm0_power).state);
+      it.printf(0,2,"DF:%d %% ", id(diskfree).state);
+      it.printf(0,3,"%s", id(system_info).state.c_str());
+switch:
+  - platform: template
+    id: backlight
+    name: LCD Backlight
+    icon: mdi:brightness-6
+    turn_on_action:
+      then:
+        - lambda: |-
+            id(mydisplay).backlight();
+        - switch.template.publish:
+            id: backlight
+            state: ON
+    turn_off_action:
+      then:
+        - lambda: |-
+            id(mydisplay).no_backlight();
+        - switch.template.publish:
+            id: backlight
+            state: OFF
