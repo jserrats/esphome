@@ -37,15 +37,15 @@ binary_sensor:
     on_press:
       then:
         - homeassistant.service:
-            service: fan.turn_on
+            service: switch.turn_on #fan.turn_on
             data:
-              entity_id: fan.power7
+              entity_id: switch.power7 #fan.power7
     on_release:
       then:
         - homeassistant.service:
-            service: fan.turn_off
+            service: switch.turn_off
             data:
-              entity_id: fan.power7
+              entity_id:  switch.power7 #fan.power7
 
 
   - platform: gpio
