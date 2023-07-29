@@ -25,7 +25,7 @@ esp32_ble_tracker:
 
 sensor:
   - platform: bh1750
-    name: "BH1750 Illuminance"
+    name: "Studio Illuminance"
     address: 0x23
     update_interval: 60s
 
