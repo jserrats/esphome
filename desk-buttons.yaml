@@ -1,0 +1,47 @@
+esphome:
+  name: esp-desk-buttons
+  platform: ESP32
+  board: nodemcu-32s
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  use_address: esp-desk-buttons.iot
+
+ota:
+
+# Enable logging
+logger:
+
+api:
+
+
+binary_sensor:
+
+  - platform: gpio
+    id: studio_fan_power
+    pin:
+      number: GPIO12
+      mode: INPUT_PULLUP
+      inverted: true
+    # filters:
+    # - delayed_on_off: 50ms
+    on_click:
+      then:
+        - homeassistant.service:
+            service: switch.toggle
+            data:
+              entity_id:  switch.power7 #fan.power7
+
+  - platform: gpio
+    id: studio_light
+    pin:
+      number: GPIO13
+      mode: INPUT_PULLUP
+      inverted: true
+    on_click:
+      then:
+        - homeassistant.service:
+            service: light.toggle
+            data:
+              entity_id:  light.studio_light
