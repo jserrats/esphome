@@ -107,7 +107,7 @@ binary_sensor:
   - platform: homeassistant
    # name: "desk"
     id: desk
-    entity_id: switch.desk
+    entity_id: switch.power1
   - platform: ld2410
     has_target:
       name: Presence
