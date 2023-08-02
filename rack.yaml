@@ -11,7 +11,7 @@ wifi:
 ota:
 
 # Enable logging
-# logger:
+logger:
 
 api:
 
