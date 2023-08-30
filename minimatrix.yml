@@ -29,6 +29,39 @@ light:
     color_correct: [75%, 75%, 75%]
     restore_mode: ALWAYS_ON
 
+button:
+  - platform: template
+    name: "Notify Living Room"
+    on_press:
+       then:
+          - binary_sensor.template.publish:
+              id: clock_on
+              state: !lambda 'return 1;'
+          - delay: 0.3s
+          - binary_sensor.template.publish:
+              id: clock_on
+              state: !lambda 'return 0;'
+          - delay: 0.3s
+          - binary_sensor.template.publish:
+              id: clock_on
+              state: !lambda 'return 1;'
+          - delay: 0.3s
+          - binary_sensor.template.publish:
+              id: clock_on
+              state: !lambda 'return 0;'
+          - delay: 0.3s
+          - binary_sensor.template.publish:
+              id: clock_on
+              state: !lambda 'return 1;'
+          - delay: 0.3s
+          - binary_sensor.template.publish:
+              id: clock_on
+              state: !lambda 'return 0;'
+
+binary_sensor:
+  - platform: template
+    id: clock_on
+
 display:
   - platform: addressable_light
     id: led_matrix_display
@@ -43,28 +76,21 @@ display:
       return (x * 8) + (7 - y);
     update_interval: 200ms
     lambda: |-
-          // Draw a bulls-eye pattern
           Color red = Color(0xFF0000);
-          Color green = Color(0x00FF00);
           Color blue = Color(0x0000FF);
-          Color white = Color(0xFFFFFF);
           Color orange = Color(0xfc9003);
           Color turquoise = Color(0x03fc8c);
 
-          //it.rectangle(0, 0, 8, 8, red);
-          //it.rectangle(1, 1, 6, 6, green);
-          //it.rectangle(2, 2, 4, 4, blue);
-          //it.rectangle(3, 3, 2, 2, red);
-          //it.line(0,0,31,7,blue);
-          //it.fill(blue);
-          //if (id(clock_on).state) {
+          if (!id(clock_on).state) {
             it.strftime(23, 2, id(bit6), turquoise, TextAlign::TOP_LEFT, "%d", id(esptime).now());
             it.strftime(12, 0, id(bit8), orange, TextAlign::TOP_RIGHT, "%H", id(esptime).now());
             it.strftime(12, 0, id(bit8), orange, TextAlign::TOP_LEFT, "%M", id(esptime).now());
-          //}
-        #      it.print(10, 0, id(bit8), green, TextAlign::TOP_RIGHT, "12");
-        # it.print(10, 0, id(bit8),TextAlign::TOP_LEFT, "88");
-        # it.print(22, 0, id(bit6),blue,TextAlign::TOP_LEFT, "28");
+          }else{
+            it.fill(blue);
+            it.strftime(23, 2, id(bit6), orange, TextAlign::TOP_LEFT, "%d", id(esptime).now());
+            it.strftime(12, 0, id(bit8), turquoise, TextAlign::TOP_RIGHT, "%H", id(esptime).now());
+            it.strftime(12, 0, id(bit8), turquoise, TextAlign::TOP_LEFT, "%M", id(esptime).now());
+          }
 
 font:
   - file: "config/pixel.ttf"
