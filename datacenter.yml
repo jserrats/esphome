@@ -1,0 +1,175 @@
+esphome:
+  name: esp-datacenter
+  platform: ESP32
+  board: esp32-c3-devkitm-1
+  platformio_options:
+    board_build.flash_mode: dio
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  use_address: esp-datacenter.iot
+
+# captive_portal:
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:
+
+mqtt:
+  broker: mqtt.lan
+  discovery: false
+
+esp32_ble_tracker:
+
+time:
+- platform: sntp
+  id: esptime
+
+i2c:
+  sda: GPIO04
+  scl: GPIO05
+  frequency: 400kHz
+
+
+sensor:
+  - platform: ld2410
+    moving_distance:
+      name : Moving Distance
+    still_distance:
+      name: Still Distance
+    moving_energy:
+      name: Move Energy
+    still_energy:
+      name: Still Energy
+    detection_distance:
+      name: Detection Distance
+
+  - platform: homeassistant
+    id: temperature
+    entity_id: weather.can_garri
+    attribute: temperature
+  - platform: homeassistant
+    name: "sensor.shelly1pm0_power"
+    id: shelly1pm0_power
+    entity_id: sensor.shelly1pm0_power
+
+  # https://esphome.io/components/sensor/xiaomi_miscale.html
+  - platform: xiaomi_miscale
+    mac_address: "E0:0F:2D:A6:78:41"
+    weight:
+      #name: "Xiaomi Mi Scale Weight"
+      id: weight_miscale
+      on_value:
+        then:
+          # - lambda: |-
+          #     if (id(weight_miscale).state >= 70 && id(weight_miscale).state <= 90) {
+          #       return id(weight_jaume).publish_state(x);}
+          #     else if (id(weight_miscale).state >= 50 && id(weight_miscale).state <= 70) {
+          #       return id(weight_judit).publish_state(x);}
+          - mqtt.publish:
+              topic: !lambda |-
+                if (id(weight_miscale).state >= 70 && id(weight_miscale).state <= 90) return "esphome/ble2ha/weight/jaume";
+                else return "esphome/ble2ha/weight/judit";
+              payload: !lambda |-
+                char buf[10];
+                sprintf(buf,  "%1.3f", id(weight_miscale).state);
+                return ((std::string) buf).c_str();
+              retain: true
+    impedance:
+      #name: "Xiaomi Mi Scale Impedance"
+      id: impedance_miscale
+      on_value:
+        then:
+            - mqtt.publish:
+                topic: !lambda |-
+                  if (id(weight_miscale).state >= 70 && id(weight_miscale).state <= 90) return "esphome/ble2ha/impedance/jaume";
+                  else return "esphome/ble2ha/impedance/judit";
+                payload: !lambda |-
+                  char buf[10];
+                  sprintf(buf,  "%1.3f", id(impedance_miscale).state);
+                  return ((std::string) buf).c_str();
+                retain: true
+
+binary_sensor:
+  - platform: ld2410
+    has_target:
+      name: Presence
+      # on_state:
+      #   then:
+      #     - light.turn_on: 
+      #         id: led
+      #         red: 0%
+      #         green: 100%
+      #         blue: 70%
+      #         flash_length: 1s
+      #         #effect: addressable_scan
+      #     - delay: 1s
+      #     - light.turn_off: led
+    has_moving_target:
+      name: Moving Target
+    has_still_target:
+      name: Still Target
+
+# light:
+#   - platform: neopixelbus
+#     type: GRB
+#     variant: WS2811
+#     pin: GPIO06
+#     num_leds: 256
+#     id: led
+#     name: test screen
+#     effects:
+#       - pulse:
+#       - addressable_color_wipe:
+#       - addressable_rainbow:
+#       - addressable_scan:
+#           scan_width: 5
+#       - addressable_twinkle:
+#       - addressable_random_twinkle:
+#       - addressable_fireworks:
+#       - addressable_flicker:
+
+uart:
+  tx_pin: GPIO00
+  rx_pin: GPIO01
+  baud_rate: 256000
+  parity: NONE
+  stop_bits: 1
+
+ld2410:
+  timeout: 5s
+  max_move_distance : 6m
+  max_still_distance: 4.5m
+
+
+display:
+  - platform: lcd_pcf8574
+    dimensions: 20x4
+    address: 0x27
+    id: mydisplay
+    update_interval: 1s
+    lambda: |-
+      // Print the current time
+      it.strftime("%X %a %d / %m", id(esptime).now());
+      it.printf(0,2,"PWR:%2.1f%W ", id(shelly1pm0_power).state);
+      it.printf(0,1,"TMP:%2.1fC ", id(temperature).state);
+
+output:
+  - platform: ledc
+    pin: GPIO03
+    id: rtttl_out
+
+rtttl:
+  output: rtttl_out
+
+button:
+  - platform: template
+    name: "Audio notification"
+    on_press:
+       then:
+          - rtttl.play: 'siren:d=8,o=5,b=100:d,e,d,e,d,e,d,e'
