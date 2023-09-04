@@ -45,3 +45,29 @@ binary_sensor:
             service: light.toggle
             data:
               entity_id:  light.studio_light
+
+  - platform: gpio
+    id: desk_power
+    pin:
+      number: GPIO14
+      mode: INPUT_PULLUP
+      inverted: true
+    on_double_click:
+      then:
+        - homeassistant.service:
+            service: switch.toggle
+            data:
+              entity_id:  switch.desk_power
+  
+  - platform: gpio
+    id: workshop_lights
+    pin:
+      number: GPIO27
+      mode: INPUT_PULLUP
+      inverted: true
+    on_click:
+      then:
+        - homeassistant.service:
+            service: light.toggle
+            data:
+              entity_id:  light.workshop_light
