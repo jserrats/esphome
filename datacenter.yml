@@ -35,18 +35,6 @@ i2c:
 
 
 sensor:
-  # - platform: ld2410
-  #   moving_distance:
-  #     name : Moving Distance
-  #   still_distance:
-  #     name: Still Distance
-  #   moving_energy:
-  #     name: Move Energy
-  #   still_energy:
-  #     name: Still Energy
-  #   detection_distance:
-  #     name: Detection Distance
-
   - platform: homeassistant
     id: temperature
     entity_id: weather.can_garri
@@ -96,40 +84,25 @@ binary_sensor:
   - platform: ld2410
     has_target:
       name: Studio Presence
-      # on_state:
-      #   then:
-      #     - light.turn_on: 
-      #         id: led
-      #         red: 0%
-      #         green: 100%
-      #         blue: 70%
-      #         flash_length: 1s
-      #         #effect: addressable_scan
-      #     - delay: 1s
-      #     - light.turn_off: led
-    # has_moving_target:
-    #   name: Moving Target
-    # has_still_target:
-    #   name: Still Target
 
-# light:
-#   - platform: neopixelbus
-#     type: GRB
-#     variant: WS2811
-#     pin: GPIO06
-#     num_leds: 256
-#     id: led
-#     name: test screen
-#     effects:
-#       - pulse:
-#       - addressable_color_wipe:
-#       - addressable_rainbow:
-#       - addressable_scan:
-#           scan_width: 5
-#       - addressable_twinkle:
-#       - addressable_random_twinkle:
-#       - addressable_fireworks:
-#       - addressable_flicker:
+light:
+  - platform: neopixelbus
+    type: GRB
+    variant: WS2811
+    pin: GPIO06
+    num_leds: 35
+    id: led
+    name: Datacenter led strip
+    effects:
+      - pulse:
+      - addressable_rainbow:
+      - addressable_scan:
+          move_interval: 50ms
+          scan_width: 5
+      - addressable_twinkle:
+      - addressable_random_twinkle:
+      - addressable_fireworks:
+      - addressable_flicker:
 
 uart:
   tx_pin: GPIO00
@@ -181,3 +154,15 @@ button:
     on_press:
        then:
           - rtttl.play: 'siren:d=8,o=5,b=100:d,e,d,e,d,e,d,e'
+  - platform: template
+    name: "Light notification"
+    on_press:
+       then:
+        - light.turn_on:
+            id: led
+            effect: "Scan"
+            blue: 0%
+            green: 0%
+            red: 100%
+        - delay: 4s
+        - light.turn_off: led
