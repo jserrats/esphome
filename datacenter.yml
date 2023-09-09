@@ -84,6 +84,16 @@ binary_sensor:
   - platform: ld2410
     has_target:
       name: Studio Presence
+      on_state:
+        then:
+        - light.turn_on:
+            id: led
+            effect: "Scan"
+            blue: 50%
+            green: 50%
+            red: 0%
+        - delay: 2s
+        - light.turn_off: led
 
 light:
   - platform: neopixelbus
