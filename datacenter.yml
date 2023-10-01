@@ -94,6 +94,15 @@ binary_sensor:
             red: 0%
         - delay: 2s
         - light.turn_off: led
+      on_press:
+        then:
+          - lambda: |-
+              id(mydisplay).backlight();
+      on_release:
+        then:
+          - lambda: |-
+              id(mydisplay).no_backlight();
+
 
 light:
   - platform: neopixelbus
