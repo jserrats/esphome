@@ -19,7 +19,7 @@ api:
 ota:
 
 mqtt:
-  broker: mqtt.lan
+  broker: mqtt.jserrats.xyz
   discovery: false
 
 esp32_ble_tracker:
