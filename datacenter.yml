@@ -11,7 +11,7 @@ wifi:
   use_address: esp-datacenter.iot
 
 # Enable logging
-logger:
+# logger:
 
 # Enable Home Assistant API
 api:
@@ -25,8 +25,8 @@ mqtt:
 esp32_ble_tracker:
 
 time:
-- platform: sntp
-  id: esptime
+  - platform: sntp
+    id: esptime
 
 i2c:
   sda: GPIO04
@@ -34,12 +34,9 @@ i2c:
   frequency: 400kHz
 
 pcf8574:
-  - id: 'pcf8574_hub'
+  - id: "pcf8574_hub"
     address: 0x20
-    pcf8575: false
-  - id: 'pcf8574_hub2'
-    address: 0x27
-    pcf8575: false
+    pcf8575: true
 
 sensor:
   - platform: homeassistant
@@ -77,15 +74,15 @@ sensor:
       id: impedance_miscale
       on_value:
         then:
-            - mqtt.publish:
-                topic: !lambda |-
-                  if (id(weight_miscale).state >= 70 && id(weight_miscale).state <= 90) return "esphome/ble2ha/impedance/jaume";
-                  else return "esphome/ble2ha/impedance/judit";
-                payload: !lambda |-
-                  char buf[10];
-                  sprintf(buf,  "%1.3f", id(impedance_miscale).state);
-                  return ((std::string) buf).c_str();
-                retain: true
+          - mqtt.publish:
+              topic: !lambda |-
+                if (id(weight_miscale).state >= 70 && id(weight_miscale).state <= 90) return "esphome/ble2ha/impedance/jaume";
+                else return "esphome/ble2ha/impedance/judit";
+              payload: !lambda |-
+                char buf[10];
+                sprintf(buf,  "%1.3f", id(impedance_miscale).state);
+                return ((std::string) buf).c_str();
+              retain: true
 
 binary_sensor:
   - platform: homeassistant
@@ -93,23 +90,24 @@ binary_sensor:
     entity_id: light.studio_light
     on_press:
       then:
-      - light.turn_on: button3_light
+        - light.turn_on: button3_light
     on_release:
       then:
         - light.turn_off: button3_light
+
+  - platform: homeassistant
+    id: workshop_power
+    entity_id: switch.power6
+    on_press:
+      then:
+        - light.turn_on: button2_light
+    on_release:
+      then:
+        - light.turn_off: button2_light
+        
   - platform: ld2410
     has_target:
       name: Studio Presence
-      on_state:
-        then:
-        - light.turn_on:
-            id: led
-            effect: "Scan"
-            blue: 50%
-            green: 50%
-            red: 0%
-        - delay: 2s
-        - light.turn_off: led
       on_press:
         then:
           - lambda: |-
@@ -118,45 +116,70 @@ binary_sensor:
         then:
           - lambda: |-
               id(mydisplay).no_backlight();
+
+  # switch0
   - platform: gpio
     id: switch0
-    filters:
-      - delayed_on_off: 0.1s
     pin:
-      pcf8574: pcf8574_hub2
-      number: 0
+      pcf8574: pcf8574_hub
+      number: 8
       mode:
         input: true
-      inverted: true
+    on_press:
+      then:
+        - homeassistant.service:
+            service: switch.turn_on
+            data:
+              entity_id: switch.power5
+    on_release:
+      then:
+        - homeassistant.service:
+            service: switch.turn_off
+            data:
+              entity_id: switch.power5
+  # switch1
   - platform: gpio
     id: switch1
     pin:
-      pcf8574: pcf8574_hub2
-      number: 1
+      pcf8574: pcf8574_hub
+      number: 9
       mode:
         input: true
-      inverted: true
+    filters:
+      - delayed_on_off: 100ms
+    on_press:
+      then:
+        - homeassistant.service:
+            service: automation.turn_on
+            data:
+              entity_id: automation.presence_studio_out
+    on_release:
+      then:
+        - homeassistant.service:
+            service: automation.turn_off
+            data:
+              entity_id: automation.presence_studio_out
+
   - platform: gpio
     id: switch2
     pin:
-      pcf8574: pcf8574_hub2
-      number: 2
+      pcf8574: pcf8574_hub
+      number: 10
       mode:
         input: true
-      inverted: true
   - platform: gpio
     id: switch3
     pin:
-      pcf8574: pcf8574_hub2
-      number: 3
+      pcf8574: pcf8574_hub
+      number: 11
       mode:
         input: true
-      inverted: true
+
   - platform: gpio
     id: button3
     pin:
       pcf8574: pcf8574_hub
-      number: 0
+      number: 3
       mode:
         input: true
       inverted: true
@@ -165,7 +188,7 @@ binary_sensor:
         - homeassistant.service:
             service: light.toggle
             data:
-              entity_id:  light.studio_light
+              entity_id: light.studio_light
   - platform: gpio
     id: button2
     pin:
@@ -176,21 +199,21 @@ binary_sensor:
       inverted: true
     on_press:
       then:
-      - light.turn_on: button2_light
-    on_release:
-      then:
-        - light.turn_off: button2_light
+        - homeassistant.service:
+            service: switch.toggle
+            data:
+              entity_id: switch.power6
   - platform: gpio
     id: button1
     pin:
       pcf8574: pcf8574_hub
-      number: 4
+      number: 1
       mode:
         input: true
       inverted: true
     on_press:
       then:
-      - light.turn_on: button1_light
+        - light.turn_on: button1_light
     on_release:
       then:
         - light.turn_off: button1_light
@@ -198,47 +221,30 @@ binary_sensor:
     id: button0
     pin:
       pcf8574: pcf8574_hub
-      number: 6
+      number: 0
       mode:
         input: true
       inverted: true
     on_press:
       then:
-      - light.turn_on: button0_light
+        - light.turn_on: button0_light
     on_release:
       then:
         - light.turn_off: button0_light
-  
+
 light:
-  - platform: neopixelbus
-    type: GRB
-    variant: WS2811
-    pin: GPIO06
-    num_leds: 35
-    id: led
-    name: Datacenter led strip
-    effects:
-      - pulse:
-      - addressable_rainbow:
-      - addressable_scan:
-          move_interval: 50ms
-          scan_width: 5
-      - addressable_twinkle:
-      - addressable_random_twinkle:
-      - addressable_fireworks:
-      - addressable_flicker:
   - platform: binary
     id: button3_light
-    output: pin1
+    output: pin7
   - platform: binary
     id: button2_light
-    output: pin3
+    output: pin6
   - platform: binary
     id: button1_light
     output: pin5
   - platform: binary
     id: button0_light
-    output: pin7
+    output: pin4
 
 uart:
   tx_pin: GPIO00
@@ -265,7 +271,7 @@ number:
 switch:
   - platform: ld2410
     bluetooth:
-      name: "STudio LD2410 Bluetooth"
+      name: "Studio LD2410 Bluetooth"
 
 display:
   - platform: lcd_pcf8574
@@ -284,18 +290,11 @@ output:
   - platform: ledc
     pin: GPIO03
     id: rtttl_out
-  - id: pin1
+  - id: pin4
     platform: gpio
     pin:
       pcf8574: pcf8574_hub
-      number: 1
-      mode:
-        output: true
-  - id: pin3
-    platform: gpio
-    pin:
-      pcf8574: pcf8574_hub
-      number: 3
+      number: 4
       mode:
         output: true
   - id: pin5
@@ -305,7 +304,14 @@ output:
       number: 5
       mode:
         output: true
-  - id: pin7  
+  - id: pin6
+    platform: gpio
+    pin:
+      pcf8574: pcf8574_hub
+      number: 6
+      mode:
+        output: true
+  - id: pin7
     platform: gpio
     pin:
       pcf8574: pcf8574_hub
@@ -320,17 +326,5 @@ button:
   - platform: template
     name: "Studio Audio notification"
     on_press:
-       then:
-          - rtttl.play: 'siren:d=8,o=5,b=100:d,e,d,e,d,e,d,e'
-  - platform: template
-    name: "Studio Light notification"
-    on_press:
-       then:
-        - light.turn_on:
-            id: led
-            effect: "Scan"
-            blue: 0%
-            green: 0%
-            red: 100%
-        - delay: 4s
-        - light.turn_off: led
+      then:
+        - rtttl.play: "siren:d=8,o=5,b=100:d,e,d,e,d,e,d,e"
