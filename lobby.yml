@@ -21,8 +21,8 @@ api:
 ota:
 
 time:
-- platform: sntp
-  id: esptime
+  - platform: sntp
+    id: esptime
 
 i2c:
   sda: GPIO04
@@ -30,14 +30,19 @@ i2c:
   frequency: 400kHz
 
 binary_sensor:
-  - platform: gpio
-    id: testpin
-    pin:
-      number: GPIO18
+  - platform: homeassistant
+    id: deadbolt
+    entity_id: binary_sensor.door_deadbolt
     on_press:
       then:
-        - switch.toggle: reminder
-        - rtttl.play: 'siren:d=8,o=5,b=100:d'
+        - light.turn_on:
+            id: led
+            effect: "Scan"
+            blue: 0%
+            green: 0%
+            red: 100%
+    on_release:
+      - light.turn_off: led
 
   - platform: gpio
     id: door
@@ -50,40 +55,25 @@ binary_sensor:
         - homeassistant.service:
             service: light.turn_on
             data:
-              entity_id:  light.lobby_light
-        - rtttl.play: 'zelda_gerudo:d=4,o=5,b=125:16c#,16f#,16g#,8a,16p,16c#,16f#,16g#,a'
+              entity_id: light.lobby_light
+        - rtttl.play: "zelda_gerudo:d=4,o=5,b=125:16c#,16f#,16g#,8a,16p,16c#,16f#,16g#,a"
 
   - platform: ld2410
     has_target:
       name: Lobby Presence
       on_press:
         then:
-        - homeassistant.service:
-            service: light.turn_on
-            data:
-              entity_id:  light.lobby_light
+          - homeassistant.service:
+              service: light.turn_on
+              data:
+                entity_id: light.lobby_light
       on_release:
         then:
-        - homeassistant.service:
-            service: light.turn_off
-            data:
-              entity_id:  light.lobby_light
+          - homeassistant.service:
+              service: light.turn_off
+              data:
+                entity_id: light.lobby_light
 switch:
-  - platform: template
-    name: "Trash reminder"
-    id: reminder
-    icon: mdi:trash-can-outline
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
-    on_turn_on:
-      - light.turn_on:
-          id: led
-          effect: "Scan"
-          blue: 100%
-          green: 100%
-          red: 0%          
-    on_turn_off:
-      - light.turn_off: led
   - platform: ld2410
     bluetooth:
       name: "Lobby LD2410 Bluetooth"
@@ -176,8 +166,8 @@ button:
   - platform: template
     name: "Lobby audio notification"
     on_press:
-       then:
-          - rtttl.play: 'siren:d=8,o=5,b=100:d,e,d,e,d,e,d,e'
+      then:
+        - rtttl.play: "siren:d=8,o=5,b=100:d,e,d,e,d,e,d,e"
 
 font:
   # gfonts://family[@weight]
@@ -188,7 +178,7 @@ font:
     id: roboto_small
     size: 14
 
-  - file: 'config/materialdesignicons-webfont.ttf'
+  - file: "config/materialdesignicons-webfont.ttf"
     id: font4
     size: 40
     glyphs:
