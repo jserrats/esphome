@@ -211,12 +211,20 @@ binary_sensor:
       mode:
         input: true
       inverted: true
-    on_press:
+    on_click:
       then:
-        - light.turn_on: button1_light
-    on_release:
+        - homeassistant.service:
+            service: media_player.select_source
+            data:
+              source: OnePlus 5T
+              entity_id: media_player.spotify_jaume_serrats9
+    on_double_click:
       then:
-        - light.turn_off: button1_light
+        - homeassistant.service:
+            service: media_player.select_source
+            data:
+              source: Pixel 7
+              entity_id: media_player.spotify_jaume_serrats9
   - platform: gpio
     id: button0
     pin:
@@ -225,13 +233,18 @@ binary_sensor:
       mode:
         input: true
       inverted: true
-    on_press:
+    on_click:
       then:
-        - light.turn_on: button0_light
-    on_release:
+        - homeassistant.service:
+            service: media_player.media_play_pause
+            data:
+              entity_id: media_player.spotify_jaume_serrats9
+    on_double_click:
       then:
-        - light.turn_off: button0_light
-
+        - homeassistant.service:
+            service: media_player.media_next_track
+            data:
+              entity_id: media_player.spotify_jaume_serrats9
 light:
   - platform: binary
     id: button3_light
