@@ -167,6 +167,20 @@ binary_sensor:
       number: 10
       mode:
         input: true
+    filters:
+      - delayed_on_off: 100ms
+    on_press:
+      then:
+        - homeassistant.service:
+            service: switch.turn_on
+            data:
+              entity_id: switch.power7
+    on_release:
+      then:
+        - homeassistant.service:
+            service: switch.turn_off
+            data:
+              entity_id: switch.power7
   - platform: gpio
     id: switch3
     pin:
