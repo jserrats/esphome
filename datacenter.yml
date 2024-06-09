@@ -20,7 +20,9 @@ ota:
 
 mqtt:
   broker: mqtt.jserrats.xyz
-  discovery: false
+  topic_prefix: esphome/datacenter
+  discovery_prefix: nothomeassistant
+  #discovery: false
 
 esp32_ble_tracker:
 
@@ -37,6 +39,12 @@ pcf8574:
   - id: "pcf8574_hub"
     address: 0x20
     pcf8575: true
+
+text_sensor:
+  - platform: mqtt_subscribe
+    name: "Uptime"
+    id: uptime
+    topic: $SYS/broker/uptime
 
 sensor:
   - platform: homeassistant
@@ -63,8 +71,8 @@ sensor:
           #       return id(weight_judit).publish_state(x);}
           - mqtt.publish:
               topic: !lambda |-
-                if (id(weight_miscale).state >= 70 && id(weight_miscale).state <= 90) return "esphome/ble2ha/weight/jaume";
-                else return "esphome/ble2ha/weight/judit";
+                if (id(weight_miscale).state >= 70 && id(weight_miscale).state <= 90) return "esphome/scale/weight/jaume";
+                else return "esphome/scale/weight/judit";
               payload: !lambda |-
                 char buf[10];
                 sprintf(buf,  "%1.3f", id(weight_miscale).state);
@@ -76,8 +84,8 @@ sensor:
         then:
           - mqtt.publish:
               topic: !lambda |-
-                if (id(weight_miscale).state >= 70 && id(weight_miscale).state <= 90) return "esphome/ble2ha/impedance/jaume";
-                else return "esphome/ble2ha/impedance/judit";
+                if (id(weight_miscale).state >= 70 && id(weight_miscale).state <= 90) return "esphome/scale/impedance/jaume";
+                else return "esphome/scale/impedance/judit";
               payload: !lambda |-
                 char buf[10];
                 sprintf(buf,  "%1.3f", id(impedance_miscale).state);
@@ -104,7 +112,7 @@ binary_sensor:
     on_release:
       then:
         - light.turn_off: button2_light
-        
+
   - platform: ld2410
     has_target:
       name: Studio Presence
@@ -310,6 +318,9 @@ display:
       // Print the current time
       it.strftime(6,0,"%X", id(esptime).now());
       it.strftime(1,1,"%a %d/%m/%Y W%W", id(esptime).now());
+
+      int days = atoi(id(uptime).state.c_str())/(3600*24);
+      it.printf(1,2, "UPTIME:%i", days);
       it.printf(1,3,"PWR:%2.0f%W ", id(shelly1pm0_power).state);
       it.printf(11,3,"TMP:%2.0fC ", id(temperature).state);
 
