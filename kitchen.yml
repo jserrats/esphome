@@ -16,7 +16,12 @@ wifi:
 logger:
 
 # Enable Home Assistant API
-api:
+# api:
+
+mqtt:
+  broker: mqtt.jserrats.xyz
+  topic_prefix: esphome/kitchen
+  discovery_prefix: homeassistant
 
 ota:
 
@@ -37,27 +42,27 @@ binary_sensor:
       mode: INPUT_PULLDOWN
     on_press:
       then:
-        - homeassistant.service:
-            service: switch.toggle
-            data:
-              entity_id: switch.sandwitch_machine
+        - mqtt.publish:
+            topic: esphome/sandwich/switch/sandwich/command
+            payload: "toggle"
         - rtttl.play: "Blue:d=4,o=5,b=140:a,a#,8g,8a#,8c6,8f,8a,a#"
     on_double_click:
       - rtttl.play: "Blue(Dab:d=4,o=5,b=140:8g,8a#,8d6,d#6,8d6,8c6,a#,8g,8a#,8c6,8f,8a,a#,8g,8a#,8d6,d#6,8d6,8c6,a#,8g,8a#,8c6,8f,8a,a#,8g,8a#,8d6,d#6,8d6,8c6,a#,8g,8a#,8a,8f,8f,2g"
 
-  - platform: gpio
-    id: sweep_button
-    pin:
-      number: GPIO18
-    on_press:
-      then:
-        - rtttl.play: "siren:d=8,o=5,b=100:f"
-        - homeassistant.service:
-            service: script.clean_kitchen
+  # - platform: gpio
+  #   id: sweep_button
+  #   pin:
+  #     number: GPIO18
+  #   on_press:
+  #     then:
+  #       - rtttl.play: "siren:d=8,o=5,b=100:f"
+  #       - homeassistant.service:
+  #           service: script.clean_kitchen
 
-  - platform: homeassistant
-    id: sandwitch
-    entity_id: switch.sandwitch_machine
+text_sensor:
+  - platform: mqtt_subscribe
+    id: sandwich_timer
+    topic: automations/timer/sandwich/text_countdown
 
 display:
   - platform: ssd1306_i2c
@@ -69,11 +74,7 @@ display:
       - id: page1
         lambda: |-
           it.strftime(5, 60, id(roboto), TextAlign::BASELINE_LEFT, "%H:%M   %d/%m", id(esptime).now());
-          it.printf(0,0, id(roboto_small),TextAlign::TOP_LEFT ,  "BIKINI: %s", id(sandwitch).state?"on":"off");
-          //if (id(sandwitch_time).has_state()){
-            // it.printf(0,14, id(roboto_small),TextAlign::TOP_LEFT ,  "TIME: %2.0f%s", id(sandwitch_time).state);
-          //}
-          // it.printf(0,14, id(roboto_small),TextAlign::TOP_LEFT ,  "POWER: %2.0f%W", id(kitchen_power).state);
+          it.printf(0,20, id(roboto),TextAlign::TOP_LEFT ,  "BIKINI: %s", id(sandwich_timer).state.c_str());
 
 output:
   - platform: ledc #esp8266_pwm
@@ -98,12 +99,3 @@ font:
   - file: "gfonts://Roboto"
     id: roboto_small
     size: 14
-
-sensor:
-  - platform: homeassistant
-    id: kitchen_power
-    entity_id: sensor.kitchen_outlet_power
-  - platform: duty_time
-    id: sandwitch_time
-    sensor: sandwitch
-    update_interval: 1s
