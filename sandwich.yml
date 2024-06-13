@@ -1,0 +1,24 @@
+# Basic Config
+esphome:
+  name: esp-sandwich
+  platform: ESP8266
+  board: esp01_1m
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  use_address: esp-sandwich.iot
+
+mqtt:
+  broker: mqtt.jserrats.xyz
+  topic_prefix: esphome/sandwich
+  discovery_prefix: homeassistant
+
+logger:
+ota:
+
+switch:
+  - platform: gpio
+    name: "Sandwich"
+    pin: GPIO4
+    id: sandwich
