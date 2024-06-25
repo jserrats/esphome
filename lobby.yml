@@ -18,6 +18,25 @@ logger:
 # Enable Home Assistant API
 api:
 
+mqtt:
+  broker: mqtt.jserrats.xyz
+  topic_prefix: esphome/lobby
+  discovery_prefix: homeassistant
+  on_json_message:
+    topic: zigbee2mqtt/magnet0
+    then:
+      - if:
+          condition:
+            lambda: 'return x["contact"]==false;'
+          then:
+            - light.turn_off: led
+          else:
+            - light.turn_on:
+                id: led
+                effect: "Scan"
+                blue: 0%
+                green: 0%
+                red: 100%
 ota:
 
 time:
@@ -30,20 +49,6 @@ i2c:
   frequency: 400kHz
 
 binary_sensor:
-  - platform: homeassistant
-    id: deadbolt
-    entity_id: binary_sensor.door_deadbolt
-    on_press:
-      then:
-        - light.turn_on:
-            id: led
-            effect: "Scan"
-            blue: 0%
-            green: 0%
-            red: 100%
-    on_release:
-      - light.turn_off: led
-
   - platform: gpio
     id: door
     name: "Main Door"
@@ -52,10 +57,9 @@ binary_sensor:
       mode: INPUT_PULLDOWN
     on_press:
       then:
-        - homeassistant.service:
-            service: light.turn_on
-            data:
-              entity_id: light.lobby_light
+        - mqtt.publish:
+            topic: zigbee2mqtt/lobby_light/set
+            payload: "ON"
         - rtttl.play: "zelda_gerudo:d=4,o=5,b=125:16c#,16f#,16g#,8a,16p,16c#,16f#,16g#,a"
 
   - platform: ld2410
@@ -63,16 +67,14 @@ binary_sensor:
       name: Lobby Presence
       on_press:
         then:
-          - homeassistant.service:
-              service: light.turn_on
-              data:
-                entity_id: light.lobby_light
+          - mqtt.publish:
+              topic: zigbee2mqtt/lobby_light/set
+              payload: "ON"
       on_release:
         then:
-          - homeassistant.service:
-              service: light.turn_off
-              data:
-                entity_id: light.lobby_light
+          - mqtt.publish:
+              topic: zigbee2mqtt/lobby_light/set
+              payload: "OFF"
 switch:
   - platform: ld2410
     bluetooth:
@@ -104,35 +106,6 @@ display:
       - id: page1
         lambda: |-
           it.strftime(5, 60, id(roboto), TextAlign::BASELINE_LEFT, "%H:%M", id(esptime).now());
-
-          it.print(64,0, id(roboto_small),TextAlign::TOP_LEFT ,  "V3 C3D");
-          it.print(64,16, id(roboto_small),TextAlign::TOP_LEFT , "V5 C3D");
-          it.print(64,32, id(roboto_small),TextAlign::TOP_LEFT , "V5 C3U");
-          it.print(64,48, id(roboto_small),TextAlign::TOP_LEFT , "V5 LCO");
-
-          if (!std::isnan(id(v3_1378).state)) {
-          it.printf(128,0, id(roboto_small),TextAlign::TOP_RIGHT ,  "%02.0f", id(v3_1378).state);
-          }else{
-          it.print(128,0, id(roboto_small),TextAlign::TOP_RIGHT , "- ");
-          }
-
-          if (!std::isnan(id(v5_1378).state)) {
-          it.printf(128,16, id(roboto_small),TextAlign::TOP_RIGHT , "%02.0f", id(v5_1378).state);
-          }else{
-          it.print(128,16, id(roboto_small),TextAlign::TOP_RIGHT , "- ");
-          }
-
-          if (!std::isnan(id(v5_291).state)) {
-          it.printf(128,32, id(roboto_small),TextAlign::TOP_RIGHT , "%02.0f", id(v5_291).state);
-          }else{
-          it.print(128,32, id(roboto_small),TextAlign::TOP_RIGHT , "- ");
-          }
-
-          if (!std::isnan(id(v5_3524).state)) {
-          it.printf(128,48, id(roboto_small),TextAlign::TOP_RIGHT , "%02.0f", id(v5_3524).state);
-          }else{
-          it.print(128,48, id(roboto_small),TextAlign::TOP_RIGHT , "- ");
-          }
 
           if (id(weather_state).has_state()) {
           std::map<std::string, std::string> weather_icon_map
@@ -196,20 +169,6 @@ font:
       - "\U000F0599" #"sunny"
       - "\U000F059D" #"windy"
       - "\U000F059E" #"windy-variant"
-
-sensor:
-  - platform: homeassistant
-    id: v3_1378
-    entity_id: sensor.v3_1378
-  - platform: homeassistant
-    id: v5_1378
-    entity_id: sensor.v5_1378
-  - platform: homeassistant
-    id: v5_291
-    entity_id: sensor.v5_291
-  - platform: homeassistant
-    id: v5_3524
-    entity_id: sensor.v5_3524
 
 text_sensor:
   - platform: homeassistant
