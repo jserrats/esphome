@@ -21,9 +21,25 @@ ota:
 mqtt:
   broker: mqtt.jserrats.xyz
   topic_prefix: esphome/datacenter
-  discovery_prefix: nothomeassistant
-  #discovery: false
-
+  on_json_message:
+  - topic: zigbee2mqtt/studio_light
+    then:
+      - if:
+          condition:
+            lambda: 'return x["state"]=="ON";'
+          then:
+            - light.turn_on: button3_light
+          else:
+            - light.turn_off: button3_light
+  - topic: zigbee2mqtt/workshop_power
+    then:
+      - if:
+          condition:
+            lambda: 'return x["state"]=="ON";'
+          then:
+            - light.turn_on: button2_light
+          else:
+            - light.turn_off: button2_light
 esp32_ble_tracker:
 
 time:
@@ -96,26 +112,6 @@ sensor:
               retain: true
 
 binary_sensor:
-  - platform: homeassistant
-    id: studio_light
-    entity_id: light.studio_light
-    on_press:
-      then:
-        - light.turn_on: button3_light
-    on_release:
-      then:
-        - light.turn_off: button3_light
-
-  - platform: homeassistant
-    id: workshop_power
-    entity_id: switch.power6
-    on_press:
-      then:
-        - light.turn_on: button2_light
-    on_release:
-      then:
-        - light.turn_off: button2_light
-
   - platform: ld2410
     has_target:
       name: Studio Presence
@@ -138,16 +134,15 @@ binary_sensor:
         input: true
     on_press:
       then:
-        - homeassistant.service:
-            service: switch.turn_on
-            data:
-              entity_id: switch.power5
+        - mqtt.publish:
+            topic: zigbee2mqtt/3dprinter/set
+            payload: "ON"
     on_release:
       then:
-        - homeassistant.service:
-            service: switch.turn_off
-            data:
-              entity_id: switch.power5
+        - mqtt.publish:
+            topic: zigbee2mqtt/3dprinter/set
+            payload: "OFF"
+            
   # switch1
   - platform: gpio
     id: switch1
@@ -182,16 +177,14 @@ binary_sensor:
       - delayed_on_off: 100ms
     on_press:
       then:
-        - homeassistant.service:
-            service: switch.turn_on
-            data:
-              entity_id: switch.power7
+        - mqtt.publish:
+            topic: zigbee2mqtt/studio_fan/set
+            payload: "ON"
     on_release:
       then:
-        - homeassistant.service:
-            service: switch.turn_off
-            data:
-              entity_id: switch.power7
+        - mqtt.publish:
+            topic: zigbee2mqtt/studio_fan/set
+            payload: "OFF"
   - platform: gpio
     id: switch3
     pin:
@@ -210,10 +203,9 @@ binary_sensor:
       inverted: true
     on_press:
       then:
-        - homeassistant.service:
-            service: light.toggle
-            data:
-              entity_id: light.studio_light
+        - mqtt.publish:
+            topic: zigbee2mqtt/studio_light/set
+            payload: "TOGGLE"
   - platform: gpio
     id: button2
     pin:
@@ -224,10 +216,9 @@ binary_sensor:
       inverted: true
     on_press:
       then:
-        - homeassistant.service:
-            service: switch.toggle
-            data:
-              entity_id: switch.power6
+        - mqtt.publish:
+            topic: zigbee2mqtt/workshop_power/set
+            payload: "TOGGLE"
   - platform: gpio
     id: button1
     pin:
@@ -306,6 +297,7 @@ number:
         name: Studio g2 move threshold
       still_threshold:
         name: Studio g2 still threshold
+        
 switch:
   - platform: ld2410
     bluetooth:
@@ -323,9 +315,9 @@ display:
       it.strftime(1,1,"%a %d/%m/%Y W%W", id(esptime).now());
 
       int days = atoi(id(uptime).state.c_str())/(3600*24);
-      it.printf(1,2, "UPTIME:%i", days);
+      it.printf(0,2, "UPTIME:%i", days);
       it.printf(10,2, "BIK:%s", id(sandwich_timer).state.c_str());
-      it.printf(1,3,"PWR:%2.0f%W ", id(shelly1pm0_power).state);
+      it.printf(0,3,"PWR:%2.0f%W ", id(shelly1pm0_power).state);
       it.printf(10,3,"TMP:%2.0fC ", id(temperature).state);
 
 output:
