@@ -14,7 +14,7 @@ mqtt:
   topic_prefix: esphome/sandwich
   discovery_prefix: homeassistant
 
-logger:
+#logger:
 ota:
 
 switch:
@@ -22,3 +22,14 @@ switch:
     name: "Sandwich"
     pin: GPIO4
     id: sandwich
+    on_turn_on:
+      - script.execute: sandwich_failsafe
+
+script:
+  - id: sandwich_failsafe
+    mode:
+      restart # Light will be kept on during 1 minute since
+      # the latest time the script is executed
+    then:
+      - delay: 10 min
+      - switch.turn_off: sandwich
