@@ -70,10 +70,10 @@ sensor:
     id: temperature
     entity_id: weather.can_garri
     attribute: temperature
-  - platform: homeassistant
-    name: "sensor.shelly1pm0_power"
-    id: shelly1pm0_power
-    entity_id: sensor.shelly1pm0_power
+
+  - platform: mqtt_subscribe
+    id: datacenter_power
+    topic: esphome/datacenter-power/sensor/datacenter_power/state
 
   # https://esphome.io/components/sensor/xiaomi_miscale.html
   - platform: xiaomi_miscale
@@ -317,7 +317,7 @@ display:
       int days = atoi(id(uptime).state.c_str())/(3600*24);
       it.printf(0,2, "UPTIME:%i", days);
       it.printf(10,2, "BIK:%s", id(sandwich_timer).state.c_str());
-      it.printf(0,3,"PWR:%2.0f%W ", id(shelly1pm0_power).state);
+      it.printf(0,3,"PWR:%2.0f%W ", id(datacenter_power).state);
       it.printf(10,3,"TMP:%2.0fC ", id(temperature).state);
 
 output:
