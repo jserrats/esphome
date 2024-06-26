@@ -1,0 +1,46 @@
+esphome:
+  name: esp-datacenter-power
+  platform: ESP8266
+  board: esp01_1m
+  comment: "Shelly 1PM"
+
+logger:
+
+ota:
+
+mqtt:
+  broker: mqtt.jserrats.xyz
+  topic_prefix: esphome/datacenter-power
+  discovery_prefix: homeassistant
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  use_address: esp-datacenter-power.iot
+
+sensor:
+  - platform: hlw8012
+    cf_pin: GPIO05
+    cf1_pin: GPIO13 # not used because it is not available on the 1PM but it is needed to compile
+    sel_pin: GPIO14 # not used because it is not available on the 1PM but it is needed to compile
+    power:
+      name: "Datacenter power"
+      unit_of_measurement: W
+      id: "shelly1pm_power"
+      device_class: power
+      state_class: measurement
+      accuracy_decimals: 0
+      filters:
+      # Map from sensor -> measured value
+      - calibrate_linear:
+          - 0.0 -> 1.0
+          - 110.33186 -> 20.62
+          - 131.01909 -> 24.32
+          - 341.33920 -> 62.08
+          - 5561.41553 -> 1000.0
+          - 2975.51221 -> 535.7
+          - 9612.66309 -> 1720.0
+          - 14891.35352 -> 2679.0
+      # Make everything below 2W appear as just 0W.
+      - lambda: if (x < 2) return 0; else return x;
+    update_interval: 10s
