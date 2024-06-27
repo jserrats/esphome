@@ -13,7 +13,7 @@ wifi:
 # captive_portal:
 
 # Enable logging
-logger:
+# logger:
 
 # Enable Home Assistant API
 api:
