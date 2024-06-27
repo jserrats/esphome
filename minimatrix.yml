@@ -28,7 +28,7 @@ mqtt:
             brightness: 25%
 
 # Enable logging
-logger:
+# logger:
 
 
 light:
