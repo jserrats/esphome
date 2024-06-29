@@ -23,7 +23,7 @@ mqtt:
   topic_prefix: esphome/lobby
   discovery_prefix: homeassistant
   on_json_message:
-    topic: zigbee2mqtt/magnet0
+    topic: zigbee2mqtt/door_closure_sensor
     then:
       - if:
           condition:
