@@ -2,9 +2,16 @@ substitutions:
   name: esp-zigbee
   device_description: "ZB-GW03 eWeLink Ethernet Zigbee Gateway based Zigbee Coordinator"
 
+ethernet:
+  use_address: esp-zigbee.iot
+
+mqtt:
+  broker: mqtt.jserrats.xyz
+  topic_prefix: esphome/zigbee
+
 packages:
   zb-gw03:
-    url: https://github.com/syssi/esphome-zb-gw03
+    url: https://github.com/jserrats/esphome-zb-gw03
     ref: main
     files:
       - packages/core.yaml
@@ -13,5 +20,5 @@ packages:
       - packages/green_led.yaml
       - packages/i2c.yaml
       - packages/button_zigbee_reset.yaml
-      - packages/mdns.yaml
-    refresh: 0s #/dev/ttyACM1
+      #- packages/mdns.yaml
+    refresh: 0s
