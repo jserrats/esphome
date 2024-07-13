@@ -5,6 +5,9 @@ substitutions:
 ethernet:
   use_address: esp-zigbee.iot
 
+logger:
+  level: ERROR
+  
 mqtt:
   broker: mqtt.jserrats.xyz
   topic_prefix: esphome/zigbee
