@@ -17,6 +17,7 @@ wifi:
 api:
 
 ota:
+  platform: esphome
 
 mqtt:
   broker: mqtt.jserrats.xyz
@@ -79,37 +80,55 @@ sensor:
   - platform: xiaomi_miscale
     mac_address: "E0:0F:2D:A6:78:41"
     weight:
-      #name: " Mi Scale Weight"
+      name: "Xiaomi Mi Scale Weight"
       id: weight_miscale
       on_value:
         then:
-          # - lambda: |-
-          #     if (id(weight_miscale).state >= 70 && id(weight_miscale).state <= 90) {
-          #       return id(weight_jaume).publish_state(x);}
-          #     else if (id(weight_miscale).state >= 50 && id(weight_miscale).state <= 70) {
-          #       return id(weight_judit).publish_state(x);}
-          - mqtt.publish:
-              topic: !lambda |-
-                if (id(weight_miscale).state >= 70 && id(weight_miscale).state <= 90) return "esphome/scale/weight/jaume";
-                else return "esphome/scale/weight/judit";
-              payload: !lambda |-
-                char buf[10];
-                sprintf(buf,  "%1.3f", id(weight_miscale).state);
-                return ((std::string) buf).c_str();
-              retain: true
+          - lambda: |-
+              if (id(weight_miscale).state >= 75 && id(weight_miscale).state <= 90) {
+                return id(weight_jaume).publish_state(x);}
+              else if (id(weight_miscale).state >= 50 && id(weight_miscale).state <= 70) {
+                return id(weight_judit).publish_state(x);}
+
     impedance:
+      name: "Xiaomi Mi Scale Impedance"
       id: impedance_miscale
       on_value:
         then:
-          - mqtt.publish:
-              topic: !lambda |-
-                if (id(weight_miscale).state >= 70 && id(weight_miscale).state <= 90) return "esphome/scale/impedance/jaume";
-                else return "esphome/scale/impedance/judit";
-              payload: !lambda |-
-                char buf[10];
-                sprintf(buf,  "%1.3f", id(impedance_miscale).state);
-                return ((std::string) buf).c_str();
-              retain: true
+          - lambda: |-
+              if (id(weight_miscale).state >= 75 && id(weight_miscale).state <= 90) {
+                return id(impedance_jaume).publish_state(x);}
+              else if (id(weight_miscale).state >= 50 && id(weight_miscale).state <= 70) {
+                return id(impedance_judit).publish_state(x);}
+
+  - platform: template
+    name: Weight Jaume
+    id: weight_jaume
+    unit_of_measurement: 'kg'
+    icon: mdi:weight-kilogram
+    retain: false
+    accuracy_decimals: 2
+  - platform: template
+    name: Impedance Jaume
+    id: impedance_jaume
+    unit_of_measurement: 'Ω'
+    icon: mdi:omega
+    retain: false
+    accuracy_decimals: 0
+  - platform: template
+    name: Weight Judit
+    id: weight_judit
+    unit_of_measurement: 'kg'
+    icon: mdi:weight-kilogram
+    accuracy_decimals: 2
+    retain: false
+  - platform: template
+    name: Impedance Judit
+    id: impedance_judit
+    unit_of_measurement: 'Ω'
+    icon: mdi:omega
+    accuracy_decimals: 0
+    retain: false
 
 binary_sensor:
   - platform: ld2410
