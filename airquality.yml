@@ -1,0 +1,30 @@
+esphome:
+  name: esp-airquality
+  platform: ESP32
+  board: esp32-c3-devkitm-1
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  use_address: 10.0.1.18 #esp-airquality.iot
+
+ota:
+  platform: esphome
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+#api:
+mqtt:
+  broker: mqtt.jserrats.xyz
+  topic_prefix: esphome/airquality
+
+uart:
+  rx_pin: 4
+  baud_rate: 9600
+
+sensor:
+  - platform: pm1006
+    pm_2_5:
+      name: "PM 2.5"
