@@ -1,0 +1,78 @@
+esphome:
+  name: esp-scale
+  platform: ESP32
+  board: wemos_d1_mini32
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  use_address: esp-scale.iot
+
+ota:
+  platform: esphome
+
+mqtt:
+  broker: mqtt.jserrats.xyz
+  topic_prefix: esphome/scale
+
+
+esp32_ble_tracker:
+
+logger:
+
+sensor:
+  # https://esphome.io/components/sensor/xiaomi_miscale.html
+  - platform: xiaomi_miscale
+    mac_address: "E0:0F:2D:A6:78:41"
+    weight:
+      name: "Xiaomi Mi Scale Weight"
+      filters:
+        - debounce: 3s
+      id: weight_miscale
+      on_value:
+        then:
+          - lambda: |-
+              if (id(weight_miscale).state >= 75 && id(weight_miscale).state <= 90) {
+                return id(weight_jaume).publish_state(x);}
+              else if (id(weight_miscale).state >= 50 && id(weight_miscale).state <= 70) {
+                return id(weight_judit).publish_state(x);}
+
+    impedance:
+      name: "Xiaomi Mi Scale Impedance"
+      id: impedance_miscale
+      on_value:
+        then:
+          - lambda: |-
+              if (id(weight_miscale).state >= 75 && id(weight_miscale).state <= 90) {
+                return id(impedance_jaume).publish_state(x);}
+              else if (id(weight_miscale).state >= 50 && id(weight_miscale).state <= 70) {
+                return id(impedance_judit).publish_state(x);}
+
+  - platform: template
+    name: Weight Jaume
+    id: weight_jaume
+    unit_of_measurement: "kg"
+    icon: mdi:weight-kilogram
+    retain: false
+    accuracy_decimals: 2
+  - platform: template
+    name: Impedance Jaume
+    id: impedance_jaume
+    unit_of_measurement: "Ω"
+    icon: mdi:omega
+    retain: false
+    accuracy_decimals: 0
+  - platform: template
+    name: Weight Judit
+    id: weight_judit
+    unit_of_measurement: "kg"
+    icon: mdi:weight-kilogram
+    accuracy_decimals: 2
+    retain: false
+  - platform: template
+    name: Impedance Judit
+    id: impedance_judit
+    unit_of_measurement: "Ω"
+    icon: mdi:omega
+    accuracy_decimals: 0
+    retain: false
