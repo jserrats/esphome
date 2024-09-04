@@ -1,0 +1,61 @@
+esphome:
+  name: esp-desk-clock
+  platform: ESP8266
+  board: d1_mini
+  platformio_options:
+    lib_deps: NeoPixelBus@2.6.0
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  use_address: 10.0.1.188 #esp-desk-clock.iot
+
+ota:
+  platform: esphome
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+#api:
+mqtt:
+  broker: mqtt.jserrats.xyz
+  topic_prefix: esphome/desk-clock
+
+display:
+  - platform: max7219
+    cs_pin: D8
+    num_chips: 1
+    intensity: 0
+
+    lambda: |-
+      it.strftime("%d.%m  %S", id(esptime).now());
+
+  - platform: tm1637
+    clk_pin: D1
+    dio_pin: D2
+    intensity: 7
+    update_interval: 500ms
+    lambda: |-
+      static int i = 0;
+      i++;
+      if ((i % 2) == 0)
+        it.strftime("%H.%M", id(esptime).now());
+      else
+        it.strftime("%H%M", id(esptime).now());
+
+light:
+  - platform: neopixelbus
+    name: notification
+    type: GRB
+    variant: WS2811
+    pin: GPIO1
+    num_leds: 1
+    id: led
+
+spi:
+  clk_pin: D5
+  mosi_pin: D7
+
+time:
+  - platform: sntp
+    id: esptime
