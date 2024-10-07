@@ -25,7 +25,7 @@ display:
   - platform: max7219
     cs_pin: D8
     num_chips: 1
-    intensity: 0
+    intensity: 8
 
     lambda: |-
       it.strftime("%d.%m  %S", id(esptime).now());
@@ -33,7 +33,7 @@ display:
   - platform: tm1637
     clk_pin: D1
     dio_pin: D2
-    intensity: 7
+    #intensity: 7
     update_interval: 500ms
     lambda: |-
       static int i = 0;
