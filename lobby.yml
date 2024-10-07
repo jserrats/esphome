@@ -38,6 +38,7 @@ mqtt:
                 green: 0%
                 red: 100%
 ota:
+  platform: esphome
 
 time:
   - platform: sntp
@@ -55,7 +56,8 @@ binary_sensor:
     pin:
       number: GPIO19
       mode: INPUT_PULLDOWN
-    on_press:
+      inverted: true
+    on_release:
       then:
         - mqtt.publish:
             topic: zigbee2mqtt/lobby_light/set
@@ -110,20 +112,15 @@ display:
           if (id(weather_state).has_state()) {
           std::map<std::string, std::string> weather_icon_map
             {
-              {"clear-night", "\U000F0594"},
-              {"cloudy", "\U000F0590"},
-              {"fog", "\U000F0591"},
-              {"hail", "\U000F0592"},
-              {"lightning", "\U000F0593"},
+              {"scattered clouds", "\U000F0590"},
+              {"mist", "\U000F0591"},
+              {"thunderstorm", "\U000F0593"},
               {"lightning-rainy", "\U000F067E"},
-              {"partlycloudy", "\U000F0595"},
+              {"few clouds", "\U000F0595"},
               {"pouring", "\U000F0596"},
               {"rainy", "\U000F0597"},
               {"snowy", "\U000F0598"},
-              {"snowy-rainy", "\U000F067F"},
-              {"sunny", "\U000F0599"},
-              {"windy", "\U000F059D"},
-              {"windy-variant", "\U000F059E"},
+              {"clear sky", "\U000F0599"},
             };
           it.printf(10, 5, id(font4), TextAlign::TOP_LEFT, weather_icon_map[id(weather_state).state.c_str()].c_str());
           }
@@ -155,6 +152,7 @@ font:
     id: font4
     size: 40
     glyphs:
+   # https://pictogrammers.github.io/@mdi/font/5.3.45/
       - "\U000F0594" #"clear-night"
       - "\U000F0590" #"cloudy"
       - "\U000F0591" #"fog"
