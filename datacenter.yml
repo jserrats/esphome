@@ -22,53 +22,20 @@ ota:
 mqtt:
   broker: mqtt.jserrats.xyz
   topic_prefix: esphome/datacenter
-  on_json_message:
-  - topic: zigbee2mqtt/studio_light
-    then:
-      - if:
-          condition:
-            lambda: 'return x["state"]=="ON";'
-          then:
-            - light.turn_on: button3_light
-          else:
-            - light.turn_off: button3_light
-  - topic: zigbee2mqtt/workshop_power
-    then:
-      - if:
-          condition:
-            lambda: 'return x["state"]=="ON";'
-          then:
-            - light.turn_on: button2_light
-          else:
-            - light.turn_off: button2_light
-esp32_ble_tracker:
-
-time:
-  - platform: sntp
-    id: esptime
 
 i2c:
   sda: GPIO04
   scl: GPIO05
   frequency: 400kHz
 
-pcf8574:
-  - id: "pcf8574_hub"
-    address: 0x20
-    pcf8575: true
-
 text_sensor:
-  - platform: mqtt_subscribe
-    id: uptime
-    topic: $SYS/broker/uptime
   - platform: mqtt_subscribe
     id: sandwich_timer
     topic: automations/timer/sandwich/text_countdown
 
-
 sensor:
   - platform: homeassistant
-    id: temperature
+    id: ha_temperature
     entity_id: weather.can_garri
     attribute: temperature
 
@@ -76,59 +43,32 @@ sensor:
     id: datacenter_power
     topic: esphome/datacenter-power/sensor/datacenter_power/state
 
-  # https://esphome.io/components/sensor/xiaomi_miscale.html
-  - platform: xiaomi_miscale
-    mac_address: "E0:0F:2D:A6:78:41"
-    weight:
-      name: "Xiaomi Mi Scale Weight"
-      id: weight_miscale
-      on_value:
-        then:
-          - lambda: |-
-              if (id(weight_miscale).state >= 75 && id(weight_miscale).state <= 90) {
-                return id(weight_jaume).publish_state(x);}
-              else if (id(weight_miscale).state >= 50 && id(weight_miscale).state <= 70) {
-                return id(weight_judit).publish_state(x);}
+  - platform: mqtt_subscribe
+    id: pm2_5
+    topic: esphome/airquality/sensor/pm_2_5/state
 
-    impedance:
-      name: "Xiaomi Mi Scale Impedance"
-      id: impedance_miscale
-      on_value:
-        then:
-          - lambda: |-
-              if (id(weight_miscale).state >= 75 && id(weight_miscale).state <= 90) {
-                return id(impedance_jaume).publish_state(x);}
-              else if (id(weight_miscale).state >= 50 && id(weight_miscale).state <= 70) {
-                return id(impedance_judit).publish_state(x);}
+  - platform: scd4x
+    co2:
+      name: "CO2"
+      id: CO2
+    temperature:
+      name: temperature
+    humidity:
+      name: humidity
 
-  - platform: template
-    name: Weight Jaume
-    id: weight_jaume
-    unit_of_measurement: 'kg'
-    icon: mdi:weight-kilogram
-    retain: false
-    accuracy_decimals: 2
-  - platform: template
-    name: Impedance Jaume
-    id: impedance_jaume
-    unit_of_measurement: 'Ω'
-    icon: mdi:omega
-    retain: false
-    accuracy_decimals: 0
-  - platform: template
-    name: Weight Judit
-    id: weight_judit
-    unit_of_measurement: 'kg'
-    icon: mdi:weight-kilogram
-    accuracy_decimals: 2
-    retain: false
-  - platform: template
-    name: Impedance Judit
-    id: impedance_judit
-    unit_of_measurement: 'Ω'
-    icon: mdi:omega
-    accuracy_decimals: 0
-    retain: false
+  - platform: ld2410
+    light:
+      name: light
+    moving_distance:
+      name : Moving Distance
+    still_distance:
+      name: Still Distance
+    moving_energy:
+      name: Move Energy
+    still_energy:
+      name: Still Energy
+    detection_distance:
+      name: Detection Distance
 
 binary_sensor:
   - platform: ld2410
@@ -142,157 +82,6 @@ binary_sensor:
         then:
           - lambda: |-
               id(mydisplay).no_backlight();
-
-  # switch0
-  - platform: gpio
-    id: switch0
-    pin:
-      pcf8574: pcf8574_hub
-      number: 8
-      mode:
-        input: true
-    on_press:
-      then:
-        - mqtt.publish:
-            topic: zigbee2mqtt/3dprinter/set
-            payload: "ON"
-    on_release:
-      then:
-        - mqtt.publish:
-            topic: zigbee2mqtt/3dprinter/set
-            payload: "OFF"
-            
-  # switch1
-  - platform: gpio
-    id: switch1
-    pin:
-      pcf8574: pcf8574_hub
-      number: 9
-      mode:
-        input: true
-    filters:
-      - delayed_on_off: 100ms
-    on_press:
-      then:
-        - homeassistant.service:
-            service: automation.turn_on
-            data:
-              entity_id: automation.presence_studio_out
-    on_release:
-      then:
-        - homeassistant.service:
-            service: automation.turn_off
-            data:
-              entity_id: automation.presence_studio_out
-
-  - platform: gpio
-    id: switch2
-    pin:
-      pcf8574: pcf8574_hub
-      number: 10
-      mode:
-        input: true
-    filters:
-      - delayed_on_off: 100ms
-    on_press:
-      then:
-        - mqtt.publish:
-            topic: zigbee2mqtt/studio_fan/set
-            payload: "ON"
-    on_release:
-      then:
-        - mqtt.publish:
-            topic: zigbee2mqtt/studio_fan/set
-            payload: "OFF"
-  - platform: gpio
-    id: switch3
-    pin:
-      pcf8574: pcf8574_hub
-      number: 11
-      mode:
-        input: true
-
-  - platform: gpio
-    id: button3
-    pin:
-      pcf8574: pcf8574_hub
-      number: 3
-      mode:
-        input: true
-      inverted: true
-    on_press:
-      then:
-        - mqtt.publish:
-            topic: zigbee2mqtt/studio_light/set
-            payload: "TOGGLE"
-  - platform: gpio
-    id: button2
-    pin:
-      pcf8574: pcf8574_hub
-      number: 2
-      mode:
-        input: true
-      inverted: true
-    on_press:
-      then:
-        - mqtt.publish:
-            topic: zigbee2mqtt/workshop_power/set
-            payload: "TOGGLE"
-  - platform: gpio
-    id: button1
-    pin:
-      pcf8574: pcf8574_hub
-      number: 1
-      mode:
-        input: true
-      inverted: true
-    on_click:
-      then:
-        - homeassistant.service:
-            service: media_player.select_source
-            data:
-              source: OnePlus 5T
-              entity_id: media_player.spotify_jaume_serrats9
-    on_double_click:
-      then:
-        - homeassistant.service:
-            service: media_player.select_source
-            data:
-              source: Pixel 7
-              entity_id: media_player.spotify_jaume_serrats9
-  - platform: gpio
-    id: button0
-    pin:
-      pcf8574: pcf8574_hub
-      number: 0
-      mode:
-        input: true
-      inverted: true
-    on_click:
-      then:
-        - homeassistant.service:
-            service: media_player.media_play_pause
-            data:
-              entity_id: media_player.spotify_jaume_serrats9
-    on_double_click:
-      then:
-        - homeassistant.service:
-            service: media_player.media_next_track
-            data:
-              entity_id: media_player.spotify_jaume_serrats9
-light:
-  - platform: binary
-    id: button3_light
-    output: pin7
-  - platform: binary
-    id: button2_light
-    output: pin6
-  - platform: binary
-    id: button1_light
-    output: pin5
-  - platform: binary
-    id: button0_light
-    output: pin4
 
 uart:
   tx_pin: GPIO00
@@ -316,7 +105,7 @@ number:
         name: Studio g2 move threshold
       still_threshold:
         name: Studio g2 still threshold
-        
+
 switch:
   - platform: ld2410
     bluetooth:
@@ -330,47 +119,19 @@ display:
     update_interval: 1s
     lambda: |-
       // Print the current time
-      it.strftime(6,0,"%X", id(esptime).now());
-      it.strftime(1,1,"%a %d/%m/%Y W%W", id(esptime).now());
+      //it.strftime(6,0,"%X", id(esptime).now());
+      //it.strftime(1,1,"%a %d/%m/%Y W%W", id(esptime).now());
 
-      int days = atoi(id(uptime).state.c_str())/(3600*24);
-      it.printf(0,2, "UPTIME:%i", days);
+      it.printf(0,2, "PM25:%2.0f", id(pm2_5).state);
+      it.printf(0,1, "CO2 :%2.0f", id(CO2).state);
       it.printf(10,2, "BIK:%s", id(sandwich_timer).state.c_str());
       it.printf(0,3,"PWR:%2.0f%W ", id(datacenter_power).state);
-      it.printf(10,3,"TMP:%2.0fC ", id(temperature).state);
+      it.printf(10,3,"TMP:%2.0fC ", id(ha_temperature).state);
 
 output:
   - platform: ledc
     pin: GPIO03
     id: rtttl_out
-  - id: pin4
-    platform: gpio
-    pin:
-      pcf8574: pcf8574_hub
-      number: 4
-      mode:
-        output: true
-  - id: pin5
-    platform: gpio
-    pin:
-      pcf8574: pcf8574_hub
-      number: 5
-      mode:
-        output: true
-  - id: pin6
-    platform: gpio
-    pin:
-      pcf8574: pcf8574_hub
-      number: 6
-      mode:
-        output: true
-  - id: pin7
-    platform: gpio
-    pin:
-      pcf8574: pcf8574_hub
-      number: 7
-      mode:
-        output: true
 
 rtttl:
   output: rtttl_out
