@@ -22,6 +22,12 @@ ota:
 mqtt:
   broker: mqtt.jserrats.xyz
   topic_prefix: esphome/datacenter
+  on_json_message:
+    topic: zigbee2mqtt/house_power_sensor
+    then:
+    - sensor.template.publish:
+        id: house_power
+        state: !lambda 'return x["power"];'
 
 i2c:
   sda: GPIO04
@@ -39,13 +45,16 @@ sensor:
     entity_id: weather.can_garri
     attribute: temperature
 
-  - platform: mqtt_subscribe
-    id: datacenter_power
-    topic: esphome/datacenter-power/sensor/datacenter_power/state
+  - platform: template
+    id: house_power
 
   - platform: mqtt_subscribe
     id: pm2_5
     topic: esphome/airquality/sensor/pm_2_5/state
+
+  - platform: mqtt_subscribe
+    id: desk_height
+    topic: esphome/standing-desk/sensor/desk_height/state
 
   - platform: scd4x
     co2:
@@ -121,11 +130,11 @@ display:
       // Print the current time
       //it.strftime(6,0,"%X", id(esptime).now());
       //it.strftime(1,1,"%a %d/%m/%Y W%W", id(esptime).now());
-
       it.printf(0,2, "PM25:%2.0f", id(pm2_5).state);
       it.printf(0,1, "CO2 :%2.0f", id(CO2).state);
+      it.printf(10,1, "DH:%2.1f", id(desk_height).state);
       it.printf(10,2, "BIK:%s", id(sandwich_timer).state.c_str());
-      it.printf(0,3,"PWR:%2.0f%W ", id(datacenter_power).state);
+      it.printf(0,3,"PWR:%2.0f%W ", id(house_power).state);
       it.printf(10,3,"TMP:%2.0fC ", id(ha_temperature).state);
 
 output:
