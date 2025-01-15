@@ -128,8 +128,7 @@ display:
     update_interval: 1s
     lambda: |-
       // Print the current time
-      //it.strftime(6,0,"%X", id(esptime).now());
-      //it.strftime(1,1,"%a %d/%m/%Y W%W", id(esptime).now());
+      it.printf(3,0,"%d", id(esptime).now().timestamp);
       it.printf(0,2, "PM25:%2.0f", id(pm2_5).state);
       it.printf(0,1, "CO2 :%2.0f", id(CO2).state);
       it.printf(10,1, "DH:%2.1f", id(desk_height).state);
@@ -151,3 +150,7 @@ button:
     on_press:
       then:
         - rtttl.play: "siren:d=8,o=5,b=100:d,e,d,e,d,e,d,e"
+        
+time:
+  - platform: sntp
+    id: esptime
