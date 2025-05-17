@@ -34,7 +34,7 @@ sensor:
           - lambda: |-
               if (id(weight_miscale).state >= 75 && id(weight_miscale).state <= 90) {
                 return id(weight_jaume).publish_state(x);}
-              else if (id(weight_miscale).state >= 50 && id(weight_miscale).state <= 70) {
+              else if (id(weight_miscale).state >= 40 && id(weight_miscale).state <= 70) {
                 return id(weight_judit).publish_state(x);}
 
     impedance:
@@ -45,7 +45,7 @@ sensor:
           - lambda: |-
               if (id(weight_miscale).state >= 75 && id(weight_miscale).state <= 90) {
                 return id(impedance_jaume).publish_state(x);}
-              else if (id(weight_miscale).state >= 50 && id(weight_miscale).state <= 70) {
+              else if (id(weight_miscale).state >= 40 && id(weight_miscale).state <= 70) {
                 return id(impedance_judit).publish_state(x);}
 
   - platform: template
