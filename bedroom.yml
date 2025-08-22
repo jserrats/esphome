@@ -1,32 +1,64 @@
 esphome:
-    name: esp-bedroom
-    platform: ESP8266
-    board: nodemcuv2
+  name: esp-bedroom
+  platform: ESP8266
+  board: nodemcuv2
 
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
+  use_address: esp-bedroom.iot
 
 # Enable logging
-logger:
+# logger:
+
+mqtt:
+  broker: mqtt.jserrats.xyz
+  topic_prefix: esphome/bedroom
+  on_json_message:
+    - topic: zigbee2mqtt/bedroom_right_remote
+      then:
+        - binary_sensor.template.publish:
+            id: screen_display
+            state: !lambda 'return x["state"]=="ON";'
+        - binary_sensor.template.publish:
+            id: bedroom_light
+            state: !lambda 'return x["state"]=="ON";'
+  on_message:
+    - topic: automations/alarms/home
+      then:
+        - binary_sensor.template.publish:
+            id: safe
+            state: !lambda 'return x=="UNSAFE";'
+        - if:
+            condition:
+              lambda: 'return x=="UNSAFE";'
+            then:
+              - light.turn_on:
+                  id: led
+                  brightness: 100%
+                  red: 100%
+                  green: 0%
+                  blue: 0%
+            else:
+              - light.turn_off: led
 
 ota:
-# Enable Home Assistant API
-api:
-  services:
-    - service: play_mission_impossible
-      then:
-       - rtttl.play: 'MissionImp:d=16,o=6,b=95:32d,32d#,32d,32d#,32d,32d#,32d,32d#,32d,32d,32d#,32e,32f,32f#,32g,g,8p,g,8p,a#,p,c7,p,g,8p,g,8p,f,p,f#,p,g,8p,g,8p,a#,p,c7,p,g,8p,g,8p,f,p,f#,p,a#,g,2d,32p,a#,g,2c#,32p,a#,g,2c,a#5,8c,2p,32p,a#5,g5,2f#,32p,a#5,g5,2f,32p,a#5,g5,2e,d#,8d'
-    - service: play_mario
-      then:
-       - rtttl.play: 'mario:d=4,o=5,b=100:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g,8p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,16p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16c7,16p,16c7,16c7,p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16d#6,8p,16d6,8p,16c6'
-    - service: play_rtttl
-      variables:
-        song_str: string
-      then:
-        - rtttl.play:
-            rtttl: !lambda 'return song_str;'
-      # https://github.com/dhylands/upy-rtttl/blob/master/songs.py
+  platform: esphome
+# api:
+# services:
+#   - service: play_mission_impossible
+#     then:
+#       - rtttl.play: "MissionImp:d=16,o=6,b=95:32d,32d#,32d,32d#,32d,32d#,32d,32d#,32d,32d,32d#,32e,32f,32f#,32g,g,8p,g,8p,a#,p,c7,p,g,8p,g,8p,f,p,f#,p,g,8p,g,8p,a#,p,c7,p,g,8p,g,8p,f,p,f#,p,a#,g,2d,32p,a#,g,2c#,32p,a#,g,2c,a#5,8c,2p,32p,a#5,g5,2f#,32p,a#5,g5,2f,32p,a#5,g5,2e,d#,8d"
+#   - service: play_mario
+#     then:
+#       - rtttl.play: "mario:d=4,o=5,b=100:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g,8p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,16p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16c7,16p,16c7,16c7,p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16d#6,8p,16d6,8p,16c6"
+#   - service: play_rtttl
+#     variables:
+#       song_str: string
+#     then:
+#       - rtttl.play:
+#           rtttl: !lambda "return song_str;"
+#     # https://github.com/dhylands/upy-rtttl/blob/master/songs.py
 i2c:
   sda: D1
   scl: D2
@@ -45,8 +77,9 @@ display:
           if (id(screen_display).state) {
             it.strftime(64, 64, id(jet), TextAlign::BASELINE_CENTER, "%H:%M", id(esptime).now());
             it.strftime(64, 0, id(jet_small), TextAlign::TOP_CENTER, "%a %d %b %y", id(esptime).now());          
-
-            if (id(temperature).has_state()) {
+            it.printf(0,32,id(jet_very_small), TextAlign::BASELINE_LEFT, "f:%s ", id(fan_timer).state.c_str() );
+            it.printf(128,32,id(jet_very_small), TextAlign::BASELINE_RIGHT, "m:%s ", id(mosquito_timer).state.c_str() );
+            /*if (id(temperature).has_state()) {
               if(!id(deadbolt).state) {
                   it.printf(30,32,id(icons), TextAlign::BASELINE_LEFT, "\U000F033e");
                 } else{
@@ -57,8 +90,9 @@ display:
                 } else{
                   it.printf(50,32,id(icons), TextAlign::BASELINE_LEFT, "\U000F0340");
                 }
-              it.printf(128, 32,id(jet_small), TextAlign::BASELINE_RIGHT, "%2.0f/%2.0f°C", id(indoor_temperature).state, id(temperature).state);
-            }
+              // it.printf(128, 32,id(jet_small), TextAlign::BASELINE_RIGHT, "%2.0f/%2.0f°C", id(indoor_temperature).state, id(temperature).state);
+            }*/
+
           }
 
 light:
@@ -70,113 +104,55 @@ light:
     id: led
     name: Nightstand led
 
-sensor:
-  - platform: homeassistant
-    #name: "Weather Forecast From Home Assistant"
-    id: temperature
-    entity_id: weather.can_garri
-    attribute: temperature
-
-  - platform: homeassistant
-    #name: "Weather Forecast From Home Assistant"
-    id: indoor_temperature
-    entity_id: sensor.sensor0_temperature
 
 binary_sensor:
-  - platform: homeassistant
-    id: deadbolt
-    entity_id: binary_sensor.door_deadbolt
-
-  - platform: homeassistant
-    id: shutter
-    entity_id: binary_sensor.magnet1_contact
-
-  - platform: homeassistant
-    id: lockdown
-    entity_id: binary_sensor.home_lockdown
-    on_press:
-      then:
-        - if:
-            condition:
-              - binary_sensor.is_on: night_time
-            then:
-              - light.turn_on:
-                  id: led
-                  brightness: 100%
-                  red: 100%
-                  green: 0%
-                  blue: 0%
-    on_release:
-      then:
-        - light.turn_off: led
-
   - platform: gpio
     id: button
     pin:
       number: D6
       inverted: True
       mode: INPUT_PULLUP
+    on_double_click:
+      then:
+        - light.turn_off: led
     on_click:
       then:
         - if:
             condition:
-              - binary_sensor.is_on: screen_display
+              - binary_sensor.is_off: screen_display
             then:
-              - homeassistant.service:
-                  service: light.turn_on
-                  data:
-                    entity_id: light.bedroom_lights
-                    brightness: "3"
-                    color_temp: "454"
-            else:
               - binary_sensor.template.publish:
                   id: screen_display
                   #state: !lambda 'return !id(screen_display).state;'
-                  state: !lambda 'return 1;'
+                  state: !lambda "return 1;"
               - delay: 5 sec
               - if:
                   condition:
-                    - binary_sensor.is_off: lights
+                    - binary_sensor.is_off: bedroom_light
                   then:
                     - binary_sensor.template.publish:
                         id: screen_display
-                        state: !lambda 'return 0;'
-    on_multi_click:
-    - timing:
-        - ON for at least 1s
-      then:
-          - if:
-              condition:
-                - binary_sensor.is_off: lights
-              then:
-                - homeassistant.service:
-                    service: light.turn_on
-                    data:
-                      entity_id: light.bedroom_lights
-                      brightness: "255"
-                      color_temp: "250"
-              else:
-                - homeassistant.service:
-                    service: light.turn_off
-                    data:
-                      entity_id: light.bedroom_lights
-
-  - platform: homeassistant
-  #name: "Weather Forecast From Home Assistant"
-    id: lights
-    entity_id: light.bedroom_lights
-    on_state:
-        then:
-        - binary_sensor.template.publish:
-            id: screen_display
-            state: !lambda 'return id(lights).state;'
-        - logger.log: "Single Long Clicked"
+                        state: !lambda "return 0;"
 
   - platform: template
     id: screen_display
 
   - platform: template
     id: night_time
+
+  - platform: template
+    id: bedroom_light
+
+  - platform: template
+    id: safe
+
+text_sensor:
+  - platform: mqtt_subscribe
+    id: fan_timer
+    topic: automations/timer/bedroom_fan/text_countdown
+  - platform: mqtt_subscribe
+    id: mosquito_timer
+    topic: automations/timer/mosquito/text_countdown
 
 output:
   - platform: esp8266_pwm
@@ -187,19 +163,19 @@ rtttl:
   output: rtttl_out
 
 time:
-- platform: sntp
-  id: esptime
-  on_time:
+  - platform: sntp
+    id: esptime
+    on_time:
       - seconds: 0
         minutes: 0
         hours: 22
         then:
           - binary_sensor.template.publish:
               id: night_time
-              state: !lambda 'return 1;'
+              state: !lambda "return 1;"
           - if:
               condition:
-                - binary_sensor.is_on: lockdown
+                - binary_sensor.is_on: safe
               then:
                 - light.turn_on:
                     id: led
@@ -213,7 +189,7 @@ time:
         then:
           - binary_sensor.template.publish:
               id: night_time
-              state: !lambda 'return 0;'
+              state: !lambda "return 0;"
 
 font:
   # gfonts://family[@weight]
@@ -226,11 +202,3 @@ font:
   - file: "gfonts://Ubuntu Mono"
     id: jet_very_small
     size: 12
-
-  #https://pictogrammers.github.io/@mdi/font/2.0.46/
-  - file: 'config/materialdesignicons-webfont.ttf'
-    id: icons
-    size: 15
-    glyphs:
-      - "\U000F033e" #""
-      - "\U000F0340" #""
