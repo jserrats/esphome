@@ -37,7 +37,7 @@ i2c:
 text_sensor:
   - platform: mqtt_subscribe
     id: sandwich_timer
-    topic: automations/timer/sandwich/text_countdown
+    topic: assistant/timer/sandwich/text_countdown
 
 sensor:
   - platform: homeassistant

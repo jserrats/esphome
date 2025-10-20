@@ -64,7 +64,7 @@ binary_sensor:
 text_sensor:
   - platform: mqtt_subscribe
     id: sandwich_timer
-    topic: automations/timer/sandwich/text_countdown
+    topic: assistant/timer/sandwich/text_countdown
 
 display:
   - platform: ssd1306_i2c
