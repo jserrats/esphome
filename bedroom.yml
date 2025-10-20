@@ -24,7 +24,7 @@ mqtt:
             id: bedroom_light
             state: !lambda 'return x["state"]=="ON";'
   on_message:
-    - topic: automations/alarm/home
+    - topic: assistant/alarm/home
       then:
         - binary_sensor.template.publish:
             id: safe
@@ -149,10 +149,10 @@ binary_sensor:
 text_sensor:
   - platform: mqtt_subscribe
     id: fan_timer
-    topic: automations/timer/bedroom_fan/text_countdown
+    topic: assistant/timer/bedroom_fan/text_countdown
   - platform: mqtt_subscribe
     id: mosquito_timer
-    topic: automations/timer/mosquito/text_countdown
+    topic: assistant/timer/mosquito/text_countdown
 
 output:
   - platform: esp8266_pwm
