@@ -32,7 +32,7 @@ mqtt:
 i2c:
   sda: GPIO04
   scl: GPIO05
-  frequency: 400kHz
+  frequency: 50kHz
 
 text_sensor:
   - platform: mqtt_subscribe
@@ -42,7 +42,7 @@ text_sensor:
 sensor:
   - platform: homeassistant
     id: ha_temperature
-    entity_id: weather.can_garri
+    entity_id: weather.forecast_home
     attribute: temperature
 
   - platform: template
@@ -129,27 +129,49 @@ display:
     lambda: |-
       // Print the current time
       it.printf(3,0,"%d", id(esptime).now().timestamp);
-      it.printf(0,2, "PM25:%2.0f", id(pm2_5).state);
-      it.printf(0,1, "CO2 :%2.0f", id(CO2).state);
       it.printf(10,1, "DH:%2.1f", id(desk_height).state);
       it.printf(10,2, "BIK:%s", id(sandwich_timer).state.c_str());
       it.printf(0,3,"PWR:%2.0f%W ", id(house_power).state);
       it.printf(10,3,"TMP:%2.0fC ", id(ha_temperature).state);
+  - platform: ssd1306_i2c
+    model: "SH1106 128x64"
+    #reset_pin: D0
+    address: 0x3C
+    rotation: 90°
+    lambda: |-
+        it.printf(40,30, id(roboto),TextAlign::TOP_CENTER ,  "AirQ");
+        it.printf(0,45, id(roboto_small),TextAlign::TOP_LEFT ,  "PM2.5:");
+        it.printf(32,60, id(roboto),TextAlign::TOP_CENTER ,  "%2.0fug/m3", id(pm2_5).state);
+        it.printf(0,85, id(roboto_small),TextAlign::TOP_LEFT ,  "CO2:");
+        it.printf(32,100, id(roboto),TextAlign::TOP_CENTER ,  "%2.0fppm", id(CO2).state);
 
-output:
-  - platform: ledc
-    pin: GPIO03
-    id: rtttl_out
+        //it.printf(0,30, "PM2.5: %2.0f", id(pm2_5).state);
+        //it.printf(0,80, "CO2: %2.0f", id(CO2).state);
 
-rtttl:
-  output: rtttl_out
 
-button:
-  - platform: template
-    name: "Studio Audio notification"
-    on_press:
-      then:
-        - rtttl.play: "siren:d=8,o=5,b=100:d,e,d,e,d,e,d,e"
+font:
+  # gfonts://family[@weight]
+  - file: "gfonts://Roboto"
+    id: roboto
+    size: 12
+  - file: "gfonts://Roboto"
+    id: roboto_small
+    size: 10
+
+# output:
+#   - platform: ledc
+#     pin: GPIO03
+#     id: rtttl_out
+
+# rtttl:
+#   output: rtttl_out
+
+# button:
+#   - platform: template
+#     name: "Studio Audio notification"
+#     on_press:
+#       then:
+#         - rtttl.play: "siren:d=8,o=5,b=100:d,e,d,e,d,e,d,e"
         
 time:
   - platform: sntp
