@@ -1,5 +1,5 @@
 esphome:
-  name: esp-desk-clock
+  name: 0f-studio-esp-w-033
   platform: ESP8266
   board: d1_mini
   platformio_options:
@@ -7,7 +7,7 @@ esphome:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
-  use_address: 10.0.1.188 #esp-desk-clock.iot
+  use_address: 10.0.1.188 #0f-studio-esp-w-033.iot
 
 ota:
   platform: esphome
@@ -16,10 +16,7 @@ ota:
 logger:
 
 # Enable Home Assistant API
-#api:
-mqtt:
-  broker: mqtt.jserrats.xyz
-  topic_prefix: esphome/desk-clock
+api:
 
 display:
   - platform: max7219
@@ -43,14 +40,14 @@ display:
       else
         it.strftime("%H%M", id(esptime).now());
 
-light:
-  - platform: neopixelbus
-    name: notification
-    type: GRB
-    variant: WS2811
-    pin: GPIO1
-    num_leds: 1
-    id: led
+# light:
+#   - platform: neopixelbus
+#     name: notification
+#     type: GRB
+#     variant: WS2811
+#     pin: GPIO1
+#     num_leds: 1
+#     id: led
 
 spi:
   clk_pin: D5
