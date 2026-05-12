@@ -1,21 +1,19 @@
 # Basic Config
 esphome:
-  name: esp-sandwich
+  name: 1f-kitchen-esp-w-003
   platform: ESP8266
   board: esp01_1m
 
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
-  use_address: esp-sandwich.iot
-
-mqtt:
-  broker: mqtt.jserrats.xyz
-  topic_prefix: esphome/sandwich
-  discovery_prefix: homeassistant
+  use_address: 1f-kitchen-esp-w-003.iot
 
 #logger:
 ota:
+  platform: esphome
+
+api:
 
 switch:
   - platform: gpio
