@@ -1,0 +1,30 @@
+esphome:
+  name: 1f-living-esp-c3-041
+  platform: ESP32
+  board: esp32-c3-devkitm-1
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  use_address: 10.0.1.254 #1f-living-esp-c3-041.iot
+
+logger:
+
+ota:
+  platform: esphome
+
+api:
+
+light:
+  - platform: neopixelbus
+    variant: WS2812
+    pin: GPIO8
+    num_leds: 8
+    name: "Giraffe light"
+    id: living_ws2812b
+    color_correct: [100%, 100%, 100%]
+    restore_mode: ALWAYS_ON
+    effects:
+      - addressable_rainbow:
+      - addressable_color_wipe:
+      - addressable_fireworks:
