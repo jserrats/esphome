@@ -1,0 +1,57 @@
+esphome:
+  name: 0f-studio-esp-w-042
+  platform: ESP32
+  board: esp32-c3-devkitm-1
+  platformio_options:
+    board_build.flash_mode: dio
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  use_address:  10.0.1.249 #0f-studio-esp-w-042.iot
+
+ota:
+  platform: esphome
+
+api:
+
+light:
+  - platform: binary
+    output: gpio_light_output
+    id: alarm_light
+    # name: "Alarm Light"
+
+output:
+  - platform: gpio
+    pin: GPIO08
+    id: gpio_light_output
+
+button:
+  - platform: template
+    name: "Short flash"
+    on_press:
+      - light.turn_on:
+          id: alarm_light
+      - delay: 300ms
+      - light.turn_off:
+          id: alarm_light
+      - delay: 300ms
+      - light.turn_on:
+          id: alarm_light
+      - delay: 300ms
+      - light.turn_off:
+          id: alarm_light
+
+  - platform: template
+    name: "Long flash"
+    on_press:
+      - light.turn_on:
+          id: alarm_light
+      - delay: 800ms
+      - light.turn_off:
+          id: alarm_light
+      - delay: 300ms
+      - light.turn_on:
+          id: alarm_light
+      - delay: 800ms
+      - light.turn_off:
+          id: alarm_light
