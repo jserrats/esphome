@@ -24,6 +24,11 @@ i2c:
   scl: GPIO05
   frequency: 50kHz
 
+text_sensor:
+  - platform: homeassistant
+    id: notification_details
+    entity_id: input_text.notification_details
+
 sensor:
   - platform: homeassistant
     id: ha_temperature
@@ -110,6 +115,9 @@ display:
     lambda: |-
       // Print the current time
       it.printf(3,0,"%d", id(esptime).now().timestamp);
+      auto str = id(notification_details).state;
+      int padding = (20 - str.length()) / 2;
+      it.printf(padding,1,"%s", str.c_str());
       it.printf(0,3,"PWR:%2.0f%W ", id(house_power).state);
       it.printf(10,3,"TMP:%2.0fC ", id(ha_temperature).state);
   - platform: ssd1306_i2c
