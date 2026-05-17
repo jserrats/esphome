@@ -28,6 +28,11 @@ text_sensor:
   - platform: homeassistant
     id: notification_details
     entity_id: input_text.notification_details
+    on_value:
+      then:
+        - delay: 60s
+        - lambda: |-
+            id(mydisplay).printf(0, 1, "                    ");  // Clear line 2 with spaces
 
 sensor:
   - platform: homeassistant
