@@ -8,8 +8,8 @@ esphome:
         id: living_ws2812b
         brightness: 100%
         red: 100%
-        green: 100%
-        blue: 50%
+        green: 60%
+        blue: 0%
 
 wifi:
   ssid: !secret wifi_ssid
