@@ -1,0 +1,72 @@
+esphome:
+  name: esp-bluetooth
+  platform: ESP8266
+  board: d1_mini
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  use_address: 10.0.1.37
+
+ota:
+  platform: esphome
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+#api:
+mqtt:
+  broker: mqtt.jserrats.xyz
+  topic_prefix: esphome/bluetooth
+
+button:
+  # - platform: template
+  #   name: Play/Pause
+  #   on_press:
+  #     - logger.log: "Button pressed"
+  #     - output.turn_on: play_pin
+  #     - delay: 0.1s
+  #     - output.turn_off: play_pin
+
+  - platform: template
+    name: Next
+    on_press:
+      - switch.turn_off: next_pin
+
+
+  - platform: template
+    name: Previous
+    on_press:
+      - switch.turn_off: prev_pin
+
+
+  - platform: template
+    name: Play/Pause
+    on_press:
+      - switch.turn_off: play_pin
+
+switch:
+  - platform: gpio
+    pin: D8
+    id: play_pin
+    restore_mode: RESTORE_DEFAULT_ON
+    on_turn_off:
+      - delay: 100ms
+      - switch.turn_on: play_pin
+
+  - platform: gpio
+    pin: D7
+    id: next_pin
+    restore_mode: RESTORE_DEFAULT_ON
+    on_turn_off:
+      - delay: 100ms
+      - switch.turn_on: next_pin
+
+  - platform: gpio
+    pin: D6
+    id: prev_pin
+    restore_mode: RESTORE_DEFAULT_ON
+    on_turn_off:
+      - delay: 50ms
+      - switch.turn_on: prev_pin

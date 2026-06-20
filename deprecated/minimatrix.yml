@@ -1,5 +1,5 @@
 esphome:
-  name: esp-minimatrix
+  name: 0f-test-esp-w1
   platform: ESP8266
   board: d1_mini
   platformio_options:
@@ -14,7 +14,7 @@ ota:
 
 mqtt:
   broker: mqtt.jserrats.xyz
-  topic_prefix: esphome/minimatrix
+  topic_prefix: esphome/0f-test-esp-w1
   discovery_prefix: homeassistant
   on_message:
     - topic: weather/sun
