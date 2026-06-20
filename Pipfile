@@ -10,3 +10,6 @@ esphome = "*"
 
 [requires]
 python_version = "3.12"
+
+[pipenv]
+cool-down-period = "10d"
