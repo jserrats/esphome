@@ -34,6 +34,24 @@ spi:
   clk_pin: GPIO11
   mosi_pin: GPIO12
 
+font:
+  - file: "config/pixel.ttf"
+    id: font_time
+    size: 110
+    glyphs: " :0123456789"
+  - file: "config/pixel.ttf"
+    id: font_sec
+    size: 44
+    glyphs: " :0123456789"
+  - file: "config/pixel.ttf"
+    id: font_day
+    size: 34
+    glyphs: " ,.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+  - file: "config/pixel.ttf"
+    id: font_date
+    size: 28
+    glyphs: " ,.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+
 display:
   - platform: st7305_rlcd
     model: WAVESHARE_400X300
@@ -44,14 +62,45 @@ display:
     dc_pin: GPIO5
     reset_pin: GPIO41
     data_rate: 1MHz
-    update_interval: 1min
-    show_test_card: true
+    update_interval: 1s
+    lambda: |-
+      auto t = id(sntp_time).now();
+      if (!t.is_valid()) {
+        it.print(200, 150, id(font_day), TextAlign::CENTER, "Syncing time...");
+        return;
+      }
+      // Day of the week, centered near the top
+      it.strftime(200, 35, id(font_day), TextAlign::TOP_CENTER, "%A", t);
+      // Big HH:MM clock
+      it.strftime(200, 130, id(font_time), TextAlign::CENTER, "%H:%M", t);
+      // Seconds centered on their own line just below the clock
+      it.strftime(200, 192, id(font_sec), TextAlign::TOP_CENTER, ":%S", t);
+      // Divider line
+      it.line(70, 248, 330, 248);
+      // Full date along the bottom
+      it.strftime(200, 262, id(font_date), TextAlign::TOP_CENTER, "%d %B %Y", t);
 
 i2s_audio:
-  - id: i2s_shared
-    i2s_lrclk_pin: GPIO45
-    i2s_bclk_pin: GPIO9
-    i2s_mclk_pin: GPIO16
+  - id: i2s_out
+    i2s_lrclk_pin:
+      number: GPIO45
+      allow_other_uses: true
+    i2s_bclk_pin:
+      number: GPIO9
+      allow_other_uses: true
+    i2s_mclk_pin:
+      number: GPIO16
+      allow_other_uses: true
+  - id: i2s_in
+    i2s_lrclk_pin:
+      number: GPIO45
+      allow_other_uses: true
+    i2s_bclk_pin:
+      number: GPIO9
+      allow_other_uses: true
+    i2s_mclk_pin:
+      number: GPIO16
+      allow_other_uses: true
 
 audio_dac:
   - platform: es8311
@@ -69,7 +118,7 @@ audio_adc:
 microphone:
   - platform: i2s_audio
     id: va_mic
-    i2s_audio_id: i2s_shared
+    i2s_audio_id: i2s_in
     i2s_din_pin: GPIO10
     adc_type: external
     sample_rate: 16000
@@ -91,6 +140,9 @@ api:
 time:
   - platform: sntp
     id: sntp_time
+    timezone: Europe/Madrid
+    on_time_sync:
+      - component.update: my_display
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -102,7 +154,7 @@ esp32:
 speaker:
   - platform: i2s_audio
     id: i2s_audio_speaker
-    i2s_audio_id: i2s_shared
+    i2s_audio_id: i2s_out
     i2s_dout_pin: GPIO8
     dac_type: external
     audio_dac: es8311_dac
@@ -129,23 +181,6 @@ media_player:
       - id: wake_word_triggered_sound
         file: https://github.com/esphome/home-assistant-voice-pe/raw/dev/sounds/wake_word_triggered.flac
 
-micro_wake_word:
-  id: mww
-  microphone:
-    microphone: va_mic
-    channels: 0
-    gain_factor: 4
-  vad:
-  models:
-    - model: hey_jarvis
-  on_wake_word_detected:
-    - media_player.speaker.play_on_device_media_file:
-        media_file: wake_word_triggered_sound
-        announcement: true
-    - delay: 300ms
-    - voice_assistant.start:
-        wake_word: !lambda return wake_word;
-
 voice_assistant:
   id: va
   microphone:
@@ -153,32 +188,9 @@ voice_assistant:
     channels: 0
     gain_factor: 4
   media_player: speaker_media_player
-  micro_wake_word: mww
   use_wake_word: false
   noise_suppression_level: 2
   auto_gain: 31dBFS
-  on_error:
-    - script.execute: restart_mww
-  on_end:
-    - script.execute: restart_mww
-  on_client_connected:
-    - micro_wake_word.start:
-  on_client_disconnected:
-    - micro_wake_word.stop:
-
-script:
-  - id: restart_mww
-    then:
-      - delay: 500ms
-      - wait_until:
-          not:
-            media_player.is_announcing:
-      - wait_until:
-          not:
-            speaker.is_playing:
-              id: i2s_audio_speaker
-      - delay: 200ms
-      - micro_wake_word.start:
 
 switch:
   - platform: gpio
@@ -186,58 +198,41 @@ switch:
     pin: GPIO46
     restore_mode: RESTORE_DEFAULT_ON
 
-  - platform: template
-    name: "Mute"
-    id: mute_switch
-    icon: mdi:microphone-off
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
-    on_turn_on:
-      - micro_wake_word.stop:
-      - voice_assistant.stop:
-    on_turn_off:
-      - if:
-          condition:
-            switch.is_on: use_wake_word_switch
-          then:
-            - micro_wake_word.start:
-
-  - platform: template
-    name: "Use Wake Word"
-    id: use_wake_word_switch
-    icon: mdi:chat-processing
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
-    on_turn_on:
-      - if:
-          condition:
-            not:
-              switch.is_on: mute_switch
-          then:
-            - micro_wake_word.start:
-    on_turn_off:
-      - micro_wake_word.stop:
-
 binary_sensor:
+  # Tap to talk: press once -> beep -> the assistant listens (HA ends it on silence).
   - platform: gpio
     name: "Boot Button"
     pin:
       number: GPIO0
       inverted: true
       mode: INPUT
+    filters:
+      - delayed_on: 30ms
     on_press:
-      - voice_assistant.start:
-    on_release:
-      - voice_assistant.stop:
+      # Only beep + start when no interaction is already running, so a second
+      # tap can't overlap the beep or restart the pipeline.
+      - if:
+          condition:
+            not:
+              voice_assistant.is_running:
+          then:
+            - media_player.speaker.play_on_device_media_file:
+                media_file: wake_word_triggered_sound
+                announcement: true
+            - delay: 300ms
+            - voice_assistant.start:
 
+  # Key button cancels / stops the current voice interaction.
   - platform: gpio
     name: "Key Button"
     pin:
       number: GPIO18
       inverted: true
       mode: INPUT
+    filters:
+      - delayed_on: 30ms
     on_press:
-      - switch.toggle: mute_switch
+      - voice_assistant.stop:
 
 number:
   - platform: template
