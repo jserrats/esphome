@@ -19,6 +19,8 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
+  # Disable Wi-Fi power save: lower-latency API round-trips for the voice pipeline.
+  power_save_mode: none
 
 external_components:
   - source: github://kylehase/ESPHome-ST7305-RLCD
@@ -51,6 +53,10 @@ font:
     id: font_date
     size: 28
     glyphs: " ,.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+  - file: "config/pixel.ttf"
+    id: font_status
+    size: 24
+    glyphs: " ,.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
 display:
   - platform: st7305_rlcd
@@ -73,8 +79,24 @@ display:
       it.strftime(200, 35, id(font_day), TextAlign::TOP_CENTER, "%A", t);
       // Big HH:MM clock
       it.strftime(200, 130, id(font_time), TextAlign::CENTER, "%H:%M", t);
-      // Seconds centered on their own line just below the clock
-      it.strftime(200, 192, id(font_sec), TextAlign::TOP_CENTER, ":%S", t);
+
+      // Status badge (left) + seconds (right), anchored to a fixed center
+      // divider so neither shifts as the second digits change width.
+      std::string ss = t.strftime("%S");
+      std::string st = id(va_state);
+      int ox, oy, sw, sh, tw, th;
+      it.get_text_bounds(0, 0, ss.c_str(), id(font_sec),    TextAlign::TOP_LEFT, &ox, &oy, &sw, &sh);
+      it.get_text_bounds(0, 0, st.c_str(), id(font_status), TextAlign::TOP_LEFT, &ox, &oy, &tw, &th);
+      const int pad_x = 8, gap = 16, row_top = 190, center_x = 200;
+      const int box_w = tw + 2 * pad_x;
+      const int box_h = sh;
+      // Black badge: right edge pinned just left of center (depends only on status text)
+      const int box_x = center_x - gap / 2 - box_w;
+      it.filled_rectangle(box_x, row_top, box_w, box_h);
+      it.print(box_x + pad_x, row_top + box_h / 2, id(font_status),
+               COLOR_OFF, TextAlign::CENTER_LEFT, st.c_str());                 // inverted (white) text
+      // Seconds: left edge pinned just right of center, grows rightward
+      it.print(center_x + gap / 2, row_top, id(font_sec), TextAlign::TOP_LEFT, ss.c_str());
       // Divider line
       it.line(70, 248, 330, 248);
       // Full date along the bottom
@@ -125,17 +147,13 @@ microphone:
     bits_per_sample: 16bit
     pdm: false
 
-sensor:
-  - platform: shtcx
-    temperature:
-      name: "Temperature"
-    humidity:
-      name: "Humidity"
-    address: 0x70
-    update_interval: 60s
-    i2c_id: bus_a
-
 api:
+
+globals:
+  - id: va_state
+    type: std::string
+    restore_value: no
+    initial_value: '"Idle"'
 
 time:
   - platform: sntp
@@ -191,6 +209,21 @@ voice_assistant:
   use_wake_word: false
   noise_suppression_level: 2
   auto_gain: 31dBFS
+  on_listening:
+    - lambda: 'id(va_state) = "Listening";'
+    - component.update: my_display
+  on_stt_end:
+    - lambda: 'id(va_state) = "Waiting";'
+    - component.update: my_display
+  on_tts_start:
+    - lambda: 'id(va_state) = "Speaking";'
+    - component.update: my_display
+  on_end:
+    - lambda: 'id(va_state) = "Idle";'
+    - component.update: my_display
+  on_error:
+    - lambda: 'id(va_state) = "Error";'
+    - component.update: my_display
 
 switch:
   - platform: gpio
