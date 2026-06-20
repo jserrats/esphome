@@ -10,5 +10,3 @@
 /secrets.yaml
 *.csv
 /legacy
-Pipfile
-Pipfile.lock

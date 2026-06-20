@@ -1,0 +1,108 @@
+esphome:
+  name: esp-minimatrix-mk2
+  platform: ESP32
+  board: d1_mini
+  platformio_options:
+    lib_deps: NeoPixelBus@2.6.0
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  use_address: esp-minimatrix-mk2.iot
+
+ota:
+  platform: esphome
+
+mqtt:
+  broker: mqtt.jserrats.xyz
+  topic_prefix: esphome/minimatrix-mk2
+  discovery_prefix: homeassistant
+
+# Enable logging
+# logger:
+
+light:
+  - platform: neopixelbus
+    variant: WS2812
+    pin: GPIO2
+    num_leds: 256
+    type: GRB
+    name: "Clock"
+    id: led_matrix_light
+    default_transition_length: 0s
+    color_correct: [75%, 75%, 75%]
+    restore_mode: ALWAYS_ON
+
+button:
+  - platform: template
+    name: "Notify Living Room"
+    on_press:
+      then:
+        - binary_sensor.template.publish:
+            id: clock_on
+            state: !lambda "return 1;"
+        - delay: 0.3s
+        - binary_sensor.template.publish:
+            id: clock_on
+            state: !lambda "return 0;"
+        - delay: 0.3s
+        - binary_sensor.template.publish:
+            id: clock_on
+            state: !lambda "return 1;"
+        - delay: 0.3s
+        - binary_sensor.template.publish:
+            id: clock_on
+            state: !lambda "return 0;"
+        - delay: 0.3s
+        - binary_sensor.template.publish:
+            id: clock_on
+            state: !lambda "return 1;"
+        - delay: 0.3s
+        - binary_sensor.template.publish:
+            id: clock_on
+            state: !lambda "return 0;"
+
+binary_sensor:
+  - platform: template
+    id: clock_on
+
+display:
+  - platform: addressable_light
+    id: led_matrix_display
+    addressable_light_id: led_matrix_light
+    width: 32
+    height: 8
+    rotation: 180
+    pixel_mapper: |-
+      if (x % 2 == 0) {
+        return (x * 8) + y;
+      }
+      return (x * 8) + (7 - y);
+    update_interval: 200ms
+    lambda: |-
+      Color red = Color(0xFF0000);
+      Color blue = Color(0x0000FF);
+      Color orange = Color(0xfc9003);
+      Color turquoise = Color(0x03fc8c);
+
+      if (!id(clock_on).state) {
+        it.strftime(23, 2, id(bit6), turquoise, TextAlign::TOP_LEFT, "%d", id(esptime).now());
+        it.strftime(12, 0, id(bit8), orange, TextAlign::TOP_RIGHT, "%H", id(esptime).now());
+        it.strftime(12, 0, id(bit8), orange, TextAlign::TOP_LEFT, "%M", id(esptime).now());
+      }else{
+        it.fill(blue);
+        it.strftime(23, 2, id(bit6), orange, TextAlign::TOP_LEFT, "%d", id(esptime).now());
+        it.strftime(12, 0, id(bit8), turquoise, TextAlign::TOP_RIGHT, "%H", id(esptime).now());
+        it.strftime(12, 0, id(bit8), turquoise, TextAlign::TOP_LEFT, "%M", id(esptime).now());
+      }
+
+font:
+  - file: "config/pixel.ttf"
+    id: bit8
+    size: 8
+  - file: "config/pixel.ttf"
+    id: bit6
+    size: 6
+
+time:
+  - platform: sntp
+    id: esptime

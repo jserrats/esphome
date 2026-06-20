@@ -1,0 +1,71 @@
+esphome:
+  name: esp-test
+  platform: ESP32
+  board: esp32-c3-devkitm-1
+  platformio_options:
+    board_build.flash_mode: dio
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  use_address: esp-test.iot
+
+# captive_portal:
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+# api:
+
+mqtt:
+  broker: mqtt.jserrats.xyz
+  topic_prefix: esphome/test
+  discovery_prefix: homeassistant
+
+ota:
+  platform: esphome
+
+time:
+  - platform: sntp
+    id: esptime
+
+i2c:
+  sda: GPIO04
+  scl: GPIO05
+  frequency: 400kHz
+
+display:
+  - platform: st7567_i2c
+    id: my_display
+    lambda: |-
+      it.print(0, 0, id(roboto), "Hello World!");
+      it.printf(10, 5, id(font4), TextAlign::TOP_LEFT, "\U000F0E45");
+    rotation: 90
+font:
+  # gfonts://family[@weight]
+  - file: "gfonts://Roboto"
+    id: roboto
+    size: 10
+  - file: "gfonts://Roboto"
+    id: roboto_small
+    size: 14
+  - file: "config/materialdesignicons-webfont.ttf"
+    id: font4
+    size: 40
+    glyphs:
+      - "\U000F0594" #"clear-night"
+      - "\U000F0590" #"cloudy"
+      - "\U000F0591" #"fog"
+      - "\U000F0592" #"hail"
+      - "\U000F0593" #"lightning"
+      - "\U000F067E" #"lightning-rainy"
+      - "\U000F0595" #"partlycloudy"
+      - "\U000F0596" #"pouring"
+      - "\U000F0597" #"rainy"
+      - "\U000F0598" #"snowy"
+      - "\U000F067F" #"snowy-rainy"
+      - "\U000F0599" #"sunny"
+      - "\U000F059D" #"windy"
+      - "\U000F059E" #"windy-variant"
+      - "\U000F0E45" #"grill"
