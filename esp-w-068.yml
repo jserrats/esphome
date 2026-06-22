@@ -51,7 +51,7 @@ font:
     glyphs: " ,.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
   - file: "config/pixel.ttf"
     id: font_date
-    size: 28
+    size: 24
     glyphs: " ,.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
   - file: "config/pixel.ttf"
     id: font_status
@@ -75,8 +75,6 @@ display:
         it.print(200, 150, id(font_day), TextAlign::CENTER, "Syncing time...");
         return;
       }
-      // Day of the week, centered near the top
-      it.strftime(200, 35, id(font_day), TextAlign::TOP_CENTER, "%A", t);
       // Big HH:MM clock
       it.strftime(200, 130, id(font_time), TextAlign::CENTER, "%H:%M", t);
 
@@ -87,7 +85,7 @@ display:
       int ox, oy, sw, sh, tw, th;
       it.get_text_bounds(0, 0, ss.c_str(), id(font_sec),    TextAlign::TOP_LEFT, &ox, &oy, &sw, &sh);
       it.get_text_bounds(0, 0, st.c_str(), id(font_status), TextAlign::TOP_LEFT, &ox, &oy, &tw, &th);
-      const int pad_x = 8, gap = 16, row_top = 190, center_x = 200;
+      const int pad_x = 8, gap = 16, row_top = 195, center_x = 200;
       const int box_w = tw + 2 * pad_x;
       const int box_h = sh;
       // Black badge: right edge pinned just left of center (depends only on status text)
@@ -99,8 +97,8 @@ display:
       it.print(center_x + gap / 2, row_top, id(font_sec), TextAlign::TOP_LEFT, ss.c_str());
       // Divider line
       it.line(70, 248, 330, 248);
-      // Full date along the bottom
-      it.strftime(200, 262, id(font_date), TextAlign::TOP_CENTER, "%d %B %Y", t);
+      // Weekday + full date along the bottom
+      it.strftime(200, 262, id(font_date), TextAlign::TOP_CENTER, "%A, %d %B %Y", t);
 
 i2s_audio:
   - id: i2s_out
