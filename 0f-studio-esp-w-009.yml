@@ -1,9 +1,12 @@
 esphome:
   name: 0f-studio-esp-w-009
-  platform: ESP32
-  board: esp32-c3-devkitm-1
   platformio_options:
     board_build.flash_mode: dio
+
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: arduino
 
 wifi:
   ssid: !secret wifi_ssid
@@ -120,6 +123,7 @@ display:
     lambda: |-
       // Print the current time
       it.printf(3,0,"%d", id(esptime).now().timestamp);
+      it.strftime(0,2,"%Y-%m-%dT%H:%M:%S", id(esptime).now());
       auto str = id(notification_details).state;
       int padding = (20 - str.length()) / 2;
       it.printf(padding,1,"%s", str.c_str());
