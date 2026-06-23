@@ -61,7 +61,7 @@ font:
   - file: "config/pixel.ttf"
     id: font_notif
     size: 24
-    glyphs: " !'(),-./0123456789:;?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+    glyphs: " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 
 text_sensor:
   - platform: homeassistant
