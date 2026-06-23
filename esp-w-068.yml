@@ -21,6 +21,7 @@ wifi:
   password: !secret wifi_pass
   # Disable Wi-Fi power save: lower-latency API round-trips for the voice pipeline.
   power_save_mode: none
+  use_address: esp-w-068.iot
 
 external_components:
   - source: github://kylehase/ESPHome-ST7305-RLCD
@@ -57,6 +58,31 @@ font:
     id: font_status
     size: 24
     glyphs: " ,.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+  - file: "config/pixel.ttf"
+    id: font_notif
+    size: 24
+    glyphs: " !'(),-./0123456789:;?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+
+text_sensor:
+  - platform: homeassistant
+    id: notification_details
+    entity_id: input_text.notification_details
+    on_value:
+      # Refresh the screen now, then auto-clear the banner 60s after the latest update.
+      - component.update: my_display
+      - if:
+          condition:
+            lambda: 'return !x.empty();'
+          then:
+            - script.execute: clear_notification
+
+script:
+  - id: clear_notification
+    mode: restart
+    then:
+      - delay: 60s
+      - lambda: 'id(notification_details).publish_state("");'
+      - component.update: my_display
 
 display:
   - platform: st7305_rlcd
@@ -70,6 +96,23 @@ display:
     data_rate: 1MHz
     update_interval: 1s
     lambda: |-
+      // Notification banner across the top: centered, wraps to a 2nd line past 20 chars.
+      std::string note = id(notification_details).state;
+      if (!note.empty()) {
+        const size_t maxlen = 20;
+        std::string l1 = note, l2 = "";
+        if (note.length() > maxlen) {
+          size_t brk = note.rfind(' ', maxlen);
+          if (brk == std::string::npos || brk == 0) brk = maxlen;  // no space -> hard split
+          l1 = note.substr(0, brk);
+          size_t s = (brk < note.length() && note[brk] == ' ') ? brk + 1 : brk;
+          l2 = note.substr(s, maxlen);
+        }
+        it.print(200, 4, id(font_notif), TextAlign::TOP_CENTER, l1.c_str());
+        if (!l2.empty())
+          it.print(200, 32, id(font_notif), TextAlign::TOP_CENTER, l2.c_str());
+      }
+
       auto t = id(sntp_time).now();
       if (!t.is_valid()) {
         it.print(200, 150, id(font_day), TextAlign::CENTER, "Syncing time...");
