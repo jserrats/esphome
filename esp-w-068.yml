@@ -293,6 +293,23 @@ binary_sensor:
     on_press:
       - voice_assistant.stop:
 
+button:
+  # Home Assistant "tap to talk": a digital version of the Boot Button.
+  - platform: template
+    name: "Start Listening"
+    icon: mdi:microphone
+    on_press:
+      - if:
+          condition:
+            not:
+              voice_assistant.is_running:
+          then:
+            - media_player.speaker.play_on_device_media_file:
+                media_file: wake_word_triggered_sound
+                announcement: true
+            - delay: 300ms
+            - voice_assistant.start:
+
 number:
   - platform: template
     name: "TTS Volume"
