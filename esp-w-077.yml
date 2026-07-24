@@ -1,0 +1,94 @@
+esphome:
+  name: esp-w-077
+  platformio_options:
+    board_build.flash_mode: dio
+
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: arduino
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  use_address: esp-w-077.iot
+
+# VERBOSE so raw captures are readable in the log while bringing the device up.
+logger:
+  level: VERBOSE
+
+# Enable Home Assistant API
+api:
+
+ota:
+  platform: esphome
+
+# --- CC1101 sub-GHz transceiver over dual-pin wiring (433.92 MHz) ---
+# https://esphome.io/components/cc1101/#1--dual-pin-wiring-recommended
+spi:
+  clk_pin: GPIO4
+  miso_pin: GPIO5
+  mosi_pin: GPIO6
+
+cc1101:
+  id: cc1101_radio      # referenced by the on_control handler below
+  cs_pin: GPIO7
+  data_rate: 1MHz          # slower SPI clock — rules out noise on jumper wiring
+  frequency: 433.92MHz
+  # Squelch the OOK noise floor so only a strong (nearby) remote registers.
+  # Relax these (lower attenuation / drop carrier-sense) if you need to
+  # receive weaker/distant signals.
+  rx_attenuation: 6dB
+  carrier_sense_above_threshold: true
+  carrier_sense_abs_thr: 6
+
+# GDO0 -> transmit data. begin_tx/begin_rx swap the single CC1101 between
+# transmitting and continuous receive.
+remote_transmitter:
+  id: rf_tx
+  pin: GPIO10
+  # Must be 100% for RF: the CC1101 does its own OOK modulation, so applying a
+  # carrier duty cycle here would corrupt the signal. ir_rf_proxy rejects
+  # anything else at validation time.
+  carrier_duty_percent: 100%
+  on_transmit:
+    then:
+      - cc1101.begin_tx
+  on_complete:
+    then:
+      - cc1101.begin_rx
+
+# GDO2 -> receive data.
+remote_receiver:
+  id: rf_rx
+  pin: GPIO3
+  dump: all            # decoded codes in the log, alongside the proxy's raw stream
+  filter: 150us        # drop sub-150us glitches (real marks are ~240us+)
+  idle: 15ms           # keep the whole frame incl. ~8ms sync gap in one capture
+
+# --- API-level RF proxy ------------------------------------------------------
+# https://esphome.io/components/ir_rf_proxy/  (EXPERIMENTAL — API may change)
+# Replaces per-button transmit_raw YAML: Home Assistant sends raw microsecond
+# timing arrays down and receives captured timings back, so codes live in HA.
+# Exactly one of remote_transmitter_id / remote_receiver_id per entry, hence
+# the two separate instances.
+radio_frequency:
+  - platform: ir_rf_proxy
+    name: "RF Transmitter"
+    frequency: 433.92MHz
+    remote_transmitter_id: rf_tx
+    # Retune the radio if HA asks to transmit on a different frequency.
+    on_control:
+      then:
+        - if:
+            condition:
+              lambda: "return x.get_frequency().has_value() && *x.get_frequency() > 0;"
+            then:
+              - cc1101.set_frequency:
+                  id: cc1101_radio
+                  value: !lambda "return *x.get_frequency();"
+
+  - platform: ir_rf_proxy
+    name: "RF Receiver"
+    frequency: 433.92MHz
+    remote_receiver_id: rf_rx
