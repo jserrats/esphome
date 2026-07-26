@@ -189,6 +189,7 @@ button:
           repeat:
             times: 10
             wait_time: 0ms
+      - lambda: 'id(light_is_on) = false;'   # All Off also turns the light off
 
 # --- Home Assistant fan + light entities (layered on the buttons above) -------
 # One-way RF: no state feedback, so these are optimistic/assumed-state. They just
@@ -229,14 +230,29 @@ fan:
     on_direction_set:
       - button.press: btn_direction # remote only toggles direction; each change = 1 toggle
 
-# Virtual binary output so the light is a real HA light entity; the physical
-# light is a single toggle, so on and off both press the one Light button.
+# Assumed on/off state of the physical light (one-way toggle, no feedback).
+# Guards against spurious toggles when HA issues a redundant command such as
+# turn_off while already off (which would otherwise flip the light back on).
+globals:
+  - id: light_is_on
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
+# Virtual binary output so the light is a real HA light entity. The physical
+# light is a single toggle button, so only press it when the requested state
+# actually differs from the assumed state, then record the new state.
 output:
   - platform: template
     id: fan_light_out
     type: binary
     write_action:
-      - button.press: btn_light
+      - if:
+          condition:
+            lambda: 'return state != id(light_is_on);'
+          then:
+            - button.press: btn_light
+            - lambda: 'id(light_is_on) = state;'
 
 light:
   - platform: binary
