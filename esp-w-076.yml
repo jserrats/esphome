@@ -69,7 +69,59 @@ remote_receiver:
   pin: GPIO3
   dump: all            # decode every known protocol (rc_switch etc.) + raw
   filter: 60us         # drop sub-60us glitches (real marks are ~240us)
-  idle: 20ms           # keep the whole 32-bit frame + sync gap in one capture
+  idle: 20ms           # merge a press's repeats into one on_raw event (debounce)
+  # Listen for the PHYSICAL remote and mirror its state into HA (no re-transmit).
+  # Decode the raw OOK frame ourselves: 32 bits, mark >450us => '1'. The button id
+  # is the stable 3rd byte (code>>8); the low byte drifts +/-55 and is ignored.
+  on_raw:
+    then:
+      - lambda: |-
+          const int n = x.size();
+          uint32_t code = 0;
+          bool found = false;
+          // scan candidate frame starts: index 0, or any mark right after a >3ms gap
+          for (int start = 0; start + 63 < n && !found; start++) {
+            if (x[start] <= 0) continue;                       // must begin on a mark
+            if (start != 0 && x[start - 1] > -3000) continue;  // must follow a frame gap
+            uint32_t c = 0; bool ok = true;
+            for (int b = 0; b < 32; b++) {
+              int mv = x[start + b * 2];
+              if (mv < 0) { ok = false; break; }               // expected a mark here
+              c = (c << 1) | ((mv > 450) ? 1u : 0u);
+            }
+            if (ok && (c & 0xFFFF0000u) == 0x00F60000u) { code = c; found = true; }
+          }
+          if (!found) return;                                  // noise / partial frame
+          uint8_t bid = (code >> 8) & 0xFF;
+          ESP_LOGD("rx", "remote code 0x%08X -> button 0x%02X", code, bid);
+          int spd = 0;
+          switch (bid) {
+            case 0x88: spd = 1; break; case 0x89: spd = 2; break;
+            case 0x8E: spd = 3; break; case 0x85: spd = 4; break;
+            case 0x87: spd = 5; break; case 0x86: spd = 6; break;
+          }
+          if (spd) {                                           // speed press -> fan on @ spd
+            id(ceiling_fan).state = true;
+            id(ceiling_fan).speed = spd;
+            id(ceiling_fan).publish_state();
+          } else if (bid == 0x8B || bid == 0x83) {             // Power / All Off -> fan off
+            id(ceiling_fan).state = false;
+            id(ceiling_fan).publish_state();
+          } else if (bid == 0x82) {                            // Direction toggle
+            id(ceiling_fan).direction =
+              (id(ceiling_fan).direction == esphome::fan::FanDirection::FORWARD)
+                ? esphome::fan::FanDirection::REVERSE
+                : esphome::fan::FanDirection::FORWARD;
+            id(ceiling_fan).publish_state();
+          }
+          if (bid == 0x84) {                                   // Light toggle
+            bool ns = !id(light_is_on);
+            id(light_is_on) = ns;
+            auto c = id(fan_light).make_call(); c.set_state(ns); c.perform();
+          } else if (bid == 0x83) {                            // All Off also kills the light
+            id(light_is_on) = false;
+            auto c = id(fan_light).make_call(); c.set_state(false); c.perform();
+          }
 
 # --- Stage 2: Home Assistant controls ----------------------------------------
 # Fan/light remote = rc-switch protocol 1, 32-bit OOK, ~240us pulse, 433.92MHz.
@@ -257,5 +309,6 @@ output:
 light:
   - platform: binary
     name: "Fan Light"
+    id: fan_light
     output: fan_light_out
     restore_mode: ALWAYS_OFF        # no RF on boot
