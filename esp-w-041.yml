@@ -1,7 +1,5 @@
 esphome:
-  name: 1f-living-esp-c3-041
-  platform: ESP32
-  board: esp32-c3-devkitm-1
+  name: esp-w-041
   on_boot:
     then:
     - light.turn_on:
@@ -11,10 +9,15 @@ esphome:
         green: 60%
         blue: 0%
 
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: arduino
+
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
-  use_address: 10.0.1.254 #1f-living-esp-c3-041.iot
+  use_address: esp-w-041.iot
 
 logger:
 

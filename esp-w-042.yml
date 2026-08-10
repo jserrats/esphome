@@ -1,13 +1,17 @@
 esphome:
-  name: 0f-studio-esp-w-042
-  platform: ESP32
-  board: esp32-c3-devkitm-1
+  name: esp-w-042
   platformio_options:
     board_build.flash_mode: dio
+
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: arduino
+
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
-  use_address:  10.0.1.249 #0f-studio-esp-w-042.iot
+  use_address: esp-w-042.iot
 
 ota:
   platform: esphome

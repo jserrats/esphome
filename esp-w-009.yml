@@ -1,5 +1,5 @@
 esphome:
-  name: 0f-studio-esp-w-009
+  name: esp-w-009
   platformio_options:
     board_build.flash_mode: dio
 
@@ -11,7 +11,7 @@ esp32:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
-  use_address: 10.0.1.39 #0f-studio-esp-w-009.iot
+  use_address: esp-w-009.iot
 
 # Enable logging
 # logger:
