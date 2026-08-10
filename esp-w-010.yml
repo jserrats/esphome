@@ -15,7 +15,7 @@ esp32:
     type: arduino
 
 esphome:
-  name: 0f-studio-esp-w-010
+  name: esp-w-010
   # Wake Desk by sending the "M" command
   # This will pull the current height after boot
   on_boot:
@@ -32,7 +32,7 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
-  use_address: 0f-studio-esp-w-010.iot
+  use_address: esp-w-010.iot
 
 api:
 

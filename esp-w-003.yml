@@ -1,13 +1,14 @@
 # Basic Config
 esphome:
-  name: 1f-kitchen-esp-w-003
-  platform: ESP8266
+  name: esp-w-003
+
+esp8266:
   board: esp01_1m
 
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
-  use_address: 1f-kitchen-esp-w-003.iot
+  use_address: esp-w-003.iot
 
 #logger:
 ota:

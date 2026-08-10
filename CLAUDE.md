@@ -24,8 +24,15 @@ This repo is a flat collection of **standalone** ESPHome device configs — ther
 shared packages or `!include` files. Each top-level `*.yml` fully describes one device;
 edits to one config never affect another.
 
-- **Naming**: `<floor>-<room>-esp-w-<id>.yml` (e.g. `0f-studio-esp-w-009.yml`); some are
-  bare `esp-w-<id>.yml`. `esp-w-<id>` is the physical device ID.
+- **Naming**: the standard is a bare `esp-w-<id>.yml` (e.g. `esp-w-009.yml`), where
+  `<id>` is the 3-digit physical device ID. This must match the node `name:` in the
+  `esphome:` block and the `use_address:` hostname (`esp-w-<id>.iot`) — file, node name,
+  and mDNS hostname stay in lockstep. An older convention embedded the location as
+  `<floor>-<room>-esp-w-<id>.yml` (e.g. `0f-studio-esp-w-009.yml`); migrate any such file
+  to the bare form. Renaming the node `name:` changes the device identity in Home
+  Assistant (old entities go unavailable, new ones are created), and the new
+  `esp-w-<id>.iot` hostname only resolves after the device is reflashed — so the migration
+  flash must target the device's current IP with `esphome run <cfg> --device <ip>`.
 - **Multiple chip families / frameworks coexist**, so config idioms differ per file:
   ESP8266 (`esp01_1m`), ESP32-C3 (arduino framework), ESP32-S3 (esp-idf framework). Match
   the target chip's conventions when editing — don't assume all files look alike.
