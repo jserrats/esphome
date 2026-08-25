@@ -126,110 +126,68 @@ remote_receiver:
 # --- Stage 2: Home Assistant controls ----------------------------------------
 # Fan/light remote = rc-switch protocol 1, 32-bit OOK, ~240us pulse, 433.92MHz.
 # (see github.com/jot-koehler/esp32-cc1101-fan-control). Codes drift +/-55 per
-# press; each button below replays the EXACT captured waveform of a mid-range
+# press; each transmit below replays the EXACT captured waveform of a mid-range
 # press (verbatim timings) which the fan's receiver accepts reliably. To
-# re-capture a button, use dump: all above and pick a code near the spread center.
-button:
-  - platform: template
-    name: "Light"          # captured mid-range code 0x00F68469
-    id: btn_light
-    entity_category: diagnostic
-    on_press:
-      - remote_transmitter.transmit_raw:
-          carrier_frequency: 0Hz
-          code: [263, -763, 237, -763, 237, -789, 237, -789, 237, -789, 237, -789, 237, -789, 237, -789, 736, -289, 736, -263, 736, -289, 736, -237, 237, -763, 763, -263, 763, -263, 237, -789, 736, -263, 237, -763, 237, -763, 237, -789, 237, -789, 736, -289, 237, -789, 237, -789, 237, -789, 736, -289, 736, -263, 237, -763, 763, -263, 237, -763, 237, -789, 736, -289, 210, -8000]
-          repeat:
-            times: 10
-            wait_time: 0ms
-  - platform: template
-    name: "Fan Speed 1"          # captured mid-range code 0x00F68812
-    id: btn_speed1
-    entity_category: diagnostic
-    on_press:
+# re-capture a code, use dump: all above and pick one near the spread center.
+#
+# The six fan-speed waveforms live in scripts because they're each sent from two
+# handlers (on_speed_set and on_turn_on); the single-use power/direction/light
+# waveforms are inlined directly into their handlers below.
+script:
+  - id: send_speed1          # captured mid-range code 0x00F68812
+    then:
       - remote_transmitter.transmit_raw:
           carrier_frequency: 0Hz
           code: [289, -763, 237, -763, 237, -789, 237, -789, 237, -789, 237, -789, 237, -789, 237, -789, 736, -289, 736, -263, 736, -263, 736, -289, 237, -763, 736, -263, 763, -263, 237, -789, 736, -263, 263, -763, 237, -763, 263, -763, 736, -289, 237, -789, 237, -789, 237, -789, 237, -789, 237, -789, 237, -789, 736, -289, 237, -789, 237, -789, 736, -289, 237, -789, 237, -8000]
           repeat:
             times: 10
             wait_time: 0ms
-  - platform: template
-    name: "Fan Speed 2"          # captured mid-range code 0x00F68946
-    id: btn_speed2
-    entity_category: diagnostic
-    on_press:
+  - id: send_speed2          # captured mid-range code 0x00F68946
+    then:
       - remote_transmitter.transmit_raw:
           carrier_frequency: 0Hz
           code: [263, -736, 263, -763, 237, -789, 237, -763, 237, -789, 237, -789, 237, -789, 237, -789, 736, -289, 736, -289, 710, -289, 736, -289, 210, -789, 736, -289, 710, -289, 237, -789, 736, -289, 237, -789, 210, -789, 237, -763, 763, -263, 210, -789, 237, -763, 736, -263, 237, -789, 736, -263, 210, -789, 237, -763, 237, -789, 736, -289, 736, -263, 237, -763, 237, -8000]
           repeat:
             times: 10
             wait_time: 0ms
-  - platform: template
-    name: "Fan Speed 3"          # captured mid-range code 0x00F68E50
-    id: btn_speed3
-    entity_category: diagnostic
-    on_press:
+  - id: send_speed3          # captured mid-range code 0x00F68E50
+    then:
       - remote_transmitter.transmit_raw:
           carrier_frequency: 0Hz
           code: [289, -763, 237, -763, 263, -763, 237, -789, 237, -789, 237, -789, 237, -789, 237, -789, 736, -289, 736, -263, 763, -263, 736, -263, 237, -763, 736, -263, 763, -263, 237, -789, 736, -263, 237, -763, 237, -763, 263, -763, 736, -289, 736, -289, 710, -289, 237, -763, 237, -789, 736, -263, 237, -763, 763, -263, 210, -789, 237, -763, 237, -789, 237, -789, 237, -8000]
           repeat:
             times: 10
             wait_time: 0ms
-  - platform: template
-    name: "Fan Speed 4"          # captured mid-range code 0x00F6855B
-    id: btn_speed4
-    entity_category: diagnostic
-    on_press:
+  - id: send_speed4          # captured mid-range code 0x00F6855B
+    then:
       - remote_transmitter.transmit_raw:
           carrier_frequency: 0Hz
           code: [263, -763, 263, -763, 237, -763, 237, -763, 263, -763, 237, -789, 237, -789, 237, -789, 736, -289, 736, -263, 736, -289, 710, -289, 237, -763, 763, -263, 763, -237, 237, -789, 736, -263, 210, -789, 237, -763, 237, -789, 237, -789, 736, -289, 237, -789, 736, -289, 210, -789, 736, -289, 210, -789, 736, -289, 736, -263, 237, -763, 736, -263, 763, -263, 210, -8000]
           repeat:
             times: 10
             wait_time: 0ms
-  - platform: template
-    name: "Fan Speed 5"          # captured mid-range code 0x00F687B7
-    id: btn_speed5
-    entity_category: diagnostic
-    on_press:
+  - id: send_speed5          # captured mid-range code 0x00F687B7
+    then:
       - remote_transmitter.transmit_raw:
           carrier_frequency: 0Hz
           code: [289, -736, 237, -763, 237, -789, 237, -789, 237, -789, 237, -789, 237, -789, 237, -789, 736, -289, 736, -263, 736, -263, 736, -289, 237, -789, 736, -263, 736, -289, 237, -789, 736, -263, 237, -763, 237, -763, 263, -763, 237, -789, 736, -289, 736, -263, 736, -289, 736, -263, 263, -763, 736, -289, 736, -289, 263, -763, 736, -263, 736, -263, 736, -263, 237, -8000]
           repeat:
             times: 10
             wait_time: 0ms
-  - platform: template
-    name: "Fan Speed 6"          # captured mid-range code 0x00F68658
-    id: btn_speed6
-    entity_category: diagnostic
-    on_press:
+  - id: send_speed6          # captured mid-range code 0x00F68658
+    then:
       - remote_transmitter.transmit_raw:
           carrier_frequency: 0Hz
           code: [289, -736, 237, -789, 237, -789, 237, -789, 237, -789, 237, -789, 237, -789, 237, -789, 736, -289, 736, -289, 710, -289, 736, -263, 237, -763, 736, -289, 710, -289, 237, -789, 736, -263, 237, -789, 237, -763, 237, -763, 237, -789, 736, -289, 736, -263, 237, -789, 237, -789, 736, -263, 237, -763, 763, -237, 736, -263, 237, -763, 237, -763, 237, -789, 237, -8000]
           repeat:
             times: 10
             wait_time: 0ms
-  - platform: template
-    name: "Fan Power"          # captured mid-range code 0x00F68B33
-    id: btn_power
-    entity_category: diagnostic
-    on_press:
-      - remote_transmitter.transmit_raw:
-          carrier_frequency: 0Hz
-          code: [263, -736, 263, -789, 237, -789, 237, -789, 237, -789, 237, -789, 237, -789, 237, -789, 736, -289, 736, -289, 710, -289, 736, -263, 237, -789, 736, -289, 736, -263, 237, -789, 736, -289, 210, -789, 237, -789, 237, -789, 736, -289, 237, -789, 736, -289, 710, -289, 237, -763, 237, -789, 736, -289, 736, -263, 237, -789, 237, -789, 736, -289, 736, -263, 237, -8000]
-          repeat:
-            times: 10
-            wait_time: 0ms
-  - platform: template
-    name: "Fan Direction"          # captured mid-range code 0x00F6823A
-    id: btn_direction
-    entity_category: diagnostic
-    on_press:
-      - remote_transmitter.transmit_raw:
-          carrier_frequency: 0Hz
-          code: [263, -789, 237, -763, 237, -789, 237, -789, 237, -789, 237, -789, 237, -789, 237, -789, 736, -289, 736, -289, 710, -289, 736, -263, 263, -789, 710, -289, 736, -263, 237, -789, 736, -263, 237, -763, 237, -789, 237, -763, 263, -763, 237, -789, 736, -289, 210, -789, 237, -763, 263, -763, 736, -263, 736, -263, 736, -289, 237, -763, 736, -263, 237, -763, 237, -8000]
-          repeat:
-            times: 10
-            wait_time: 0ms
 
+# The only remaining button: a true "All Off" reset. Transmits the remote's
+# All Off (fan + light off) AND forces the assumed HA state to off, so the
+# optimistic state == reality afterwards. Also invoked from on_boot to sync to
+# a known baseline.
+button:
   - platform: template
     name: "All Off"          # captured mid-range code 0x00F6833B (fan + light off)
     id: btn_alloff
@@ -241,11 +199,22 @@ button:
           repeat:
             times: 10
             wait_time: 0ms
-      - lambda: 'id(light_is_on) = false;'   # All Off also turns the light off
+      - lambda: |-
+          // Force the assumed HA state to match the "all off" we just sent.
+          // Set the fan .state directly + publish (this does NOT re-trigger
+          // on_turn_off's RF). For the light, clear the global first so the
+          // output's write_action sees no change and skips a redundant RF press;
+          // the make_call just republishes the entity as off.
+          id(ceiling_fan).state = false;
+          id(ceiling_fan).publish_state();
+          id(light_is_on) = false;
+          auto c = id(fan_light).make_call();
+          c.set_state(false);
+          c.perform();
 
-# --- Home Assistant fan + light entities (layered on the buttons above) -------
-# One-way RF: no state feedback, so these are optimistic/assumed-state. They just
-# trigger the captured-waveform buttons above (no code duplication).
+# --- Home Assistant fan + light entities (layered on the transmits above) -----
+# One-way RF: no state feedback, so these are optimistic/assumed-state. They
+# replay the captured waveforms (speeds via scripts, power/direction inlined).
 fan:
   - platform: template
     name: "Ceiling Fan"
@@ -254,17 +223,22 @@ fan:
     has_direction: true
     restore_mode: ALWAYS_OFF        # never transmit RF on boot
     on_turn_off:
-      - button.press: btn_power     # Power button = OFF only
+      - remote_transmitter.transmit_raw:   # Power button = OFF only, code 0x00F68B33
+          carrier_frequency: 0Hz
+          code: [263, -736, 263, -789, 237, -789, 237, -789, 237, -789, 237, -789, 237, -789, 237, -789, 736, -289, 736, -289, 710, -289, 736, -263, 237, -789, 736, -289, 736, -263, 237, -789, 736, -289, 210, -789, 237, -789, 237, -789, 736, -289, 237, -789, 736, -289, 710, -289, 237, -763, 237, -789, 736, -289, 736, -263, 237, -789, 237, -789, 736, -289, 736, -263, 237, -8000]
+          repeat:
+            times: 10
+            wait_time: 0ms
     on_speed_set:
       - lambda: |-
           // x = target speed 1..6 (pressing a speed also turns the fan on)
           switch (x) {
-            case 1: id(btn_speed1).press(); break;
-            case 2: id(btn_speed2).press(); break;
-            case 3: id(btn_speed3).press(); break;
-            case 4: id(btn_speed4).press(); break;
-            case 5: id(btn_speed5).press(); break;
-            case 6: id(btn_speed6).press(); break;
+            case 1: id(send_speed1).execute(); break;
+            case 2: id(send_speed2).execute(); break;
+            case 3: id(send_speed3).execute(); break;
+            case 4: id(send_speed4).execute(); break;
+            case 5: id(send_speed5).execute(); break;
+            case 6: id(send_speed6).execute(); break;
           }
     on_turn_on:
       - lambda: |-
@@ -272,15 +246,20 @@ fan:
           int s = id(ceiling_fan).speed;
           if (s < 1) s = 1;
           switch (s) {
-            case 1: id(btn_speed1).press(); break;
-            case 2: id(btn_speed2).press(); break;
-            case 3: id(btn_speed3).press(); break;
-            case 4: id(btn_speed4).press(); break;
-            case 5: id(btn_speed5).press(); break;
-            case 6: id(btn_speed6).press(); break;
+            case 1: id(send_speed1).execute(); break;
+            case 2: id(send_speed2).execute(); break;
+            case 3: id(send_speed3).execute(); break;
+            case 4: id(send_speed4).execute(); break;
+            case 5: id(send_speed5).execute(); break;
+            case 6: id(send_speed6).execute(); break;
           }
     on_direction_set:
-      - button.press: btn_direction # remote only toggles direction; each change = 1 toggle
+      - remote_transmitter.transmit_raw:   # direction toggle, code 0x00F6823A
+          carrier_frequency: 0Hz
+          code: [263, -789, 237, -763, 237, -789, 237, -789, 237, -789, 237, -789, 237, -789, 237, -789, 736, -289, 736, -289, 710, -289, 736, -263, 263, -789, 710, -289, 736, -263, 237, -789, 736, -263, 237, -763, 237, -789, 237, -763, 263, -763, 237, -789, 736, -289, 210, -789, 237, -763, 263, -763, 736, -263, 736, -263, 736, -289, 237, -763, 736, -263, 237, -763, 237, -8000]
+          repeat:
+            times: 10
+            wait_time: 0ms
 
 # Assumed on/off state of the physical light (one-way toggle, no feedback).
 # Guards against spurious toggles when HA issues a redundant command such as
@@ -292,7 +271,7 @@ globals:
     initial_value: 'false'
 
 # Virtual binary output so the light is a real HA light entity. The physical
-# light is a single toggle button, so only press it when the requested state
+# light is a single toggle button, so only transmit when the requested state
 # actually differs from the assumed state, then record the new state.
 output:
   - platform: template
@@ -303,7 +282,12 @@ output:
           condition:
             lambda: 'return state != id(light_is_on);'
           then:
-            - button.press: btn_light
+            - remote_transmitter.transmit_raw:   # Light toggle, code 0x00F68469
+                carrier_frequency: 0Hz
+                code: [263, -763, 237, -763, 237, -789, 237, -789, 237, -789, 237, -789, 237, -789, 237, -789, 736, -289, 736, -263, 736, -289, 736, -237, 237, -763, 763, -263, 763, -263, 237, -789, 736, -263, 237, -763, 237, -763, 237, -789, 237, -789, 736, -289, 237, -789, 237, -789, 237, -789, 736, -289, 736, -263, 237, -763, 763, -263, 237, -763, 237, -789, 736, -289, 210, -8000]
+                repeat:
+                  times: 10
+                  wait_time: 0ms
             - lambda: 'id(light_is_on) = state;'
 
 light:
