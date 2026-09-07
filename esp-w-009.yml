@@ -45,7 +45,7 @@ sensor:
 
   - platform: homeassistant
     id: pm25
-    entity_id: sensor.0f_studio_esp_w_005_pm_2_5
+    entity_id: sensor.jaume_studio_esp_w_005_pm_2_5
 
   - platform: template
     id: house_power
