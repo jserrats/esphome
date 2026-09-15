@@ -125,8 +125,8 @@ display:
       it.print(center_x + gap / 2, row_top, id(font_sec), TextAlign::TOP_LEFT, ss.c_str());
       // Divider line
       it.line(70, 248, 330, 248);
-      // Weekday + full date along the bottom
-      it.strftime(200, 262, id(font_date), TextAlign::TOP_CENTER, "%A, %d %B %Y", t);
+      // Weekday + day/month along the bottom
+      it.strftime(200, 262, id(font_date), TextAlign::TOP_CENTER, "%A, %d %B", t);
 
 i2s_audio:
   - id: i2s_out
