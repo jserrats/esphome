@@ -27,28 +27,10 @@ i2c:
   scl: GPIO05
   frequency: 50kHz
 
-text_sensor:
-  - platform: homeassistant
-    id: notification_details
-    entity_id: input_text.notification_details
-    on_value:
-      then:
-        - delay: 60s
-        - lambda: |-
-            id(mydisplay).printf(0, 1, "                    ");  // Clear line 2 with spaces
-
 sensor:
-  - platform: homeassistant
-    id: ha_temperature
-    entity_id: weather.forecast_home
-    attribute: temperature
-
   - platform: homeassistant
     id: pm25
     entity_id: sensor.jaume_studio_esp_w_005_pm_2_5
-
-  - platform: template
-    id: house_power
 
   # - platform: mqtt_subscribe
   #   id: pm2_5
@@ -77,14 +59,6 @@ binary_sensor:
   - platform: ld2410
     has_target:
       name: Studio Presence
-      on_press:
-        then:
-          - lambda: |-
-              id(mydisplay).backlight();
-      on_release:
-        then:
-          - lambda: |-
-              id(mydisplay).no_backlight();
 
 uart:
   tx_pin: GPIO00
@@ -115,20 +89,6 @@ switch:
       name: "Studio LD2410 Bluetooth"
 
 display:
-  - platform: lcd_pcf8574
-    dimensions: 20x4
-    address: 0x27
-    id: mydisplay
-    update_interval: 1s
-    lambda: |-
-      // Print the current time
-      it.printf(3,0,"%d", id(esptime).now().timestamp);
-      it.strftime(0,2,"%Y-%m-%dT%H:%M:%S", id(esptime).now());
-      auto str = id(notification_details).state;
-      int padding = (20 - str.length()) / 2;
-      it.printf(padding,1,"%s", str.c_str());
-      it.printf(0,3,"PWR:%2.0f%W ", id(house_power).state);
-      it.printf(10,3,"TMP:%2.0fC ", id(ha_temperature).state);
   - platform: ssd1306_i2c
     model: "SH1106 128x64"
     #reset_pin: D0
@@ -164,7 +124,3 @@ font:
 #     on_press:
 #       then:
 #         - rtttl.play: "siren:d=8,o=5,b=100:d,e,d,e,d,e,d,e"
-        
-time:
-  - platform: sntp
-    id: esptime
